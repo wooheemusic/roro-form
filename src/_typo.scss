@@ -1,0 +1,24 @@
+@import url(//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css);
+// * {
+//    font-family: 'Spoqa Han Sans', 'Spoqa Han Sans JP', 'Sans-serif';
+// }
+
+html {
+  letter-spacing: -0.025rem;
+  font-size: 15px;
+}
+
+@for $i from 1 through 5 {
+  h#{$i} {
+    font-size: 4.65rem - ($i * 0.65rem);
+    font-weight: 600 - ($i * 50);
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+    @if $i < 4 {
+      letter-spacing: -0.2rem;
+    }
+    @else {
+      letter-spacing: -0.025rem;
+    }
+  }
+}

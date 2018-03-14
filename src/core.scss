@@ -1,0 +1,29 @@
+@import '~@majac/css/build/majac.scss';
+@import '_typo.scss';
+// NodeModule 안에 폴더에 접근할 경우 접두사 ~ 를 사용해야 함. 
+// sass-loader 의 includePaths를 사용할 경우 기본 path 가 설정값 path 로 잡히기 때문.
+html,
+body {
+  height: 100%;
+  #root {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    #main {
+      flex: 1;
+    }
+  }
+}
+
+form {
+  .row {
+    >div[class^="col"] {
+      padding-top: .5rem;
+      padding-bottom: .5rem;
+    }
+  }
+}
+
+.selected {
+  color :blue;
+}
