@@ -128,7 +128,7 @@ export default class Form extends Component {
     console.log('Form handle BLUR', e)
     console.dir(e.target)
     const { name, value } = e.target
-    if ("async validation 필드가 있다면") {
+    if (!"async validation 필드가 있다면") {
       const validationResult = this.validateAsync(name, value)
       this.props.control.setState((prev, props) => ({
         pristine: false,
