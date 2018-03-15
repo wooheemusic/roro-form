@@ -87,7 +87,7 @@ export default class Form extends Component {
       for (let i in prev) {
         prev[i] = undefined
       }
-      return Object.assign(prev, this.defaultState, state || this.props.initState) // assign은 shallow하므로 defaultState와 initState에 관해서만 nested default로 변경할 예정
+      return Object.assign(prev, this.defaultState, state || this.props.initState || this.props.control.initState) // assign은 shallow하므로 defaultState와 initState에 관해서만 nested default로 변경할 예정
     })
   }
 
@@ -96,20 +96,23 @@ export default class Form extends Component {
   }
 
   validate(name, value) {
-    return {value} 
+    return { value }
   }
 
   validateAsync(name, value) {
-    return {value} 
+    return { value, isValid: new Promise(() => { }) }
   }
 
   handleChange(e) {
     const { name, value } = e.target
-    const validationResult = this.validate(name, value)
-    this.props.control.setState((prev, props) => ({
-      pristine: false,
-      [name]: validationResult
-    }))
+    this.props.control.setState((prev, props) => {
+      let entity = prev[name]? Object.assign(prev[name], {value}) : {value}
+      console.log('xxxxx', entity)
+      return {
+        pristine: false,
+        [name]: entity
+      }
+    })
   }
 
   handleClick(e) {
@@ -128,7 +131,7 @@ export default class Form extends Component {
     console.log('Form handle BLUR', e)
     console.dir(e.target)
     const { name, value } = e.target
-    if (!"async validation 필드가 있다면") {
+    if ("async validation 필드가 있다면") {
       const validationResult = this.validateAsync(name, value)
       this.props.control.setState((prev, props) => ({
         pristine: false,
@@ -140,7 +143,11 @@ export default class Form extends Component {
 
   handleAfterSubmitCompletion(v) {
     console.log('Form submit post handler', v)
-    this.props.control.setState({ submitting: false })
+    switch (v) {
+      // 어떠한 인터페이스를 구성할까
+      default:
+        this.props.control.setState({ submitting: false })
+    }
   }
 
   handleSubmit(e) {
@@ -156,9 +163,11 @@ export default class Form extends Component {
 
   // containment로 정의된 자식에게 주입할 lifting dependency와 value
   getDependency(name) {
-    let formControl = this.props.state[name]
+    let formControl = this.props[name]
     let value = formControl ? formControl.value : ''
-    return Object.assign(this.staticDependency, { value })
+    // console.log('xxxxxx', value)
+    return Object.assign(this.staticDependency, {value})
+    // return this.staticDependency
   }
 
   getDependentChildren(children) {
@@ -177,6 +186,7 @@ export default class Form extends Component {
   applyDependecy(component) {
     const { type, props: { name, children } } = component
     // console.log('applyDependcy', component.type.name, component.type)
+    // console.log('yyyyy', this.getDependency(name))
     let propsDependency = (type === 'input' || type === 'button' || typeof type === 'function') ? this.getDependency(name) : {}
     let dependentChildren = this.getDependentChildren(children)
     if (Object.keys(propsDependency).length !== 0 || children !== dependentChildren) {
@@ -187,7 +197,7 @@ export default class Form extends Component {
   }
 
   render() {
-    console.log('Form render props stateBridge', this.props, this.props.state)
+    console.log('Form render props', this.props)
     const { children, name, className } = this.props
     const dependentChildren = this.getDependentChildren(children)
     console.log('dependentChildren', dependentChildren)
@@ -202,6 +212,6 @@ export default class Form extends Component {
 }
 
 Form.defaultProps = {
-  name: 'Form'
+  name: 'RoroForm'
 }
 
