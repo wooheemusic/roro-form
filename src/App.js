@@ -3,17 +3,17 @@ import logo from './logo.svg';
 import './App.css';
 // import Kitchen from 'components/kitchen'
 // import Table from 'components/table'
-import ReactForm from 'components/reactForm'
-import { Provider } from 'react-redux'
-import { createStore, combineReducers } from 'redux'
-import { reducer as formReducer } from 'redux-form'
-import ReduxForm, {handleSubmit } from 'components/reduxForm'
+// import ReactForm from 'components/reactForm'
+// import { Provider } from 'react-redux'
+// import { createStore, combineReducers } from 'redux'
+// import { reducer as formReducer } from 'redux-form'
+// import ReduxForm, {handleSubmit } from 'components/reduxForm'
 import LoginForm from 'components/login-form'
 import './core.scss'
 
-const reducer = combineReducers({
-  form: formReducer // mounted under "form"
-})
+// const reducer = combineReducers({
+//   form: formReducer // mounted under "form"
+// })
 
 // combineReducers({
 //   form: formReducer.validation({
@@ -21,7 +21,7 @@ const reducer = combineReducers({
 //   })
 // })
 
-const store = createStore(reducer)
+// const store = createStore(reducer)
 
 class App extends Component {
   render() {

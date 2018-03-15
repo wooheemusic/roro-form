@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Button } from 'reactstrap'
+// import { Button } from 'reactstrap'
 
 export class Input extends Component {
 
@@ -106,11 +106,12 @@ export default class Form extends Component {
   handleChange(e) {
     const { name, value } = e.target
     this.props.control.setState((prev, props) => {
-      let entity = prev[name]? Object.assign(prev[name], {value}) : {value}
-      console.log('xxxxx', entity)
-      return {
-        pristine: false,
-        [name]: entity
+      // let entity = prev[name] ? Object.assign(prev[name], { value }) : { value }
+      if (prev[name]) {
+        return {
+          pristine: false,
+          [name]: Object.assign(prev[name], { value })
+        }
       }
     })
   }
@@ -123,6 +124,7 @@ export default class Form extends Component {
         this.initialize()
         break
       case 'submit':
+      default:
         this.handleSubmit(e)
     }
   }
@@ -131,14 +133,14 @@ export default class Form extends Component {
     console.log('Form handle BLUR', e)
     console.dir(e.target)
     const { name, value } = e.target
-    if ("async validation 필드가 있다면") {
-      const validationResult = this.validateAsync(name, value)
-      this.props.control.setState((prev, props) => ({
+    this.props.control.setState((prev, props) => {
+      // let entity = prev[name] ? Object.assign(prev[name], { touched : true }) : { value } 
+      // let assignment = this.props.control.asyncValidate(name)
+      return {
         pristine: false,
-        [name]: validationResult
-      }))
-
-    }
+        [name]: Object.assign(prev[name], { touched : true })
+      }
+    })
   }
 
   handleAfterSubmitCompletion(v) {
@@ -146,8 +148,8 @@ export default class Form extends Component {
     switch (v) {
       // 어떠한 인터페이스를 구성할까
       default:
-        this.props.control.setState({ submitting: false })
     }
+    this.props.control.setState({ submitting: false })
   }
 
   handleSubmit(e) {
@@ -166,7 +168,7 @@ export default class Form extends Component {
     let formControl = this.props[name]
     let value = formControl ? formControl.value : ''
     // console.log('xxxxxx', value)
-    return Object.assign(this.staticDependency, {value})
+    return Object.assign(this.staticDependency, { value })
     // return this.staticDependency
   }
 
@@ -184,6 +186,9 @@ export default class Form extends Component {
 
   // getDependentChildren와 상호 재귀하면서 자식들을 재구성합니다. input, Input에는 this.bindMap에 정의된 lifting callback을 주입합니다.
   applyDependecy(component) {
+    if (component === null) { // this for a child that is a react react expression like {touched? <div>i am touched</div> : undefined}  <--- 이거 null임;
+      return null 
+    }
     const { type, props: { name, children } } = component
     // console.log('applyDependcy', component.type.name, component.type)
     // console.log('yyyyy', this.getDependency(name))
