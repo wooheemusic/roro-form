@@ -57,12 +57,9 @@ export default class Form extends Component {
     this.defaultState = {
       submitting: false,
       pristine: true,
-      submitFailureMessage: '',
-      submitSuccessMessage: '',
       config: {
         asyncValidateOnChange: false, // true로 설정했을 때의 구현은 나중으로 미룸.
       },
-      action: 'initiating'
       //username // this is a sample
     }
 
@@ -138,7 +135,7 @@ export default class Form extends Component {
       // let assignment = this.props.control.asyncValidate(name)
       return {
         pristine: false,
-        [name]: Object.assign(prev[name], { touched : true })
+        [name]: Object.assign(prev[name], { touched: true })
       }
     })
   }
@@ -149,6 +146,7 @@ export default class Form extends Component {
       // 어떠한 인터페이스를 구성할까
       default:
     }
+    console.log('submitting set to false')
     this.props.control.setState({ submitting: false })
   }
 
@@ -156,8 +154,12 @@ export default class Form extends Component {
     console.log('Form handle SUBMIT')
     this.props.control.setState({ submitting: true })
     const promise = this.props.onSubmit(e)
+    console.log('xxxxxxx promise', promise)
     if (promise instanceof Promise) {
-      promise.then(this.handleAfterSubmitCompletion)
+      promise.then((res) => {
+        console.log('yyyyyyy res', res)
+        this.handleAfterSubmitCompletion(res)
+      })
     } else {
       throw new Error('Form onSubmit should return a promise')
     }
@@ -186,8 +188,8 @@ export default class Form extends Component {
 
   // getDependentChildren와 상호 재귀하면서 자식들을 재구성합니다. input, Input에는 this.bindMap에 정의된 lifting callback을 주입합니다.
   applyDependecy(component) {
-    if (component === null) { // this for a child that is a react react expression like {touched? <div>i am touched</div> : undefined}  <--- 이거 null임;
-      return null 
+    if (component === null || typeof component !== 'object') { // this for a child that is a react react expression like {touched? <div>i am touched</div> : undefined}  <--- 이거 null임;
+      return component
     }
     const { type, props: { name, children } } = component
     // console.log('applyDependcy', component.type.name, component.type)

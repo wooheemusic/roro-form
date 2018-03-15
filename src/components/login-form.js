@@ -47,16 +47,20 @@ export default class LoginForm extends Component {
     })
 
     this.asyncValidate = (asyncApi, asyncName, message) => {
-      let promise = asyncApi(2000, false)
+      let promise = asyncApi(5000, true)
       this.setState((prev) => {
-        return Object.assign(prev.asyncValidations || {}, { status: 'processing', promise })
+        return {
+          asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'processing', promise } })
+        }
       })
       return promise.then((result) => {
         console.log('async validation result', asyncName, result)
         if (result === true) {
           this.setState((prev) => {
             if (prev.asyncValidations && prev.asyncValidations[asyncName] && prev.asyncValidations[asyncName].promise === promise) {
-              return Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'resolved' } })
+              return {
+                asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'resolved' } })
+              }
             } else {
               console.log('it seems like a async validation has been overwritten by a new one')
             }
@@ -65,7 +69,9 @@ export default class LoginForm extends Component {
         } else if (result === false) {
           this.setState((prev) => {
             if (prev.asyncValidations && prev.asyncValidations[asyncName] && prev.asyncValidations[asyncName].promise === promise) {
-              return Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'rejected', message } })
+              return {
+                asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'rejected', message } })
+              }
             } else {
               console.log('it seems like a async validation has been overwritten by a new one')
             }
@@ -83,17 +89,21 @@ export default class LoginForm extends Component {
   handleSubmit() {
     console.log('LoginForm handleSubmit')
     // 아래는 다시 작성 , asyncValidations에 모두 resolve일 경우만 submit, 하나라도 reject이면 무시, promise가 있으면 promise.all
-    let temporaryPromises = [this.asyncValidate(this.asyncApi, 'username', 'not exist'), this.asyncValidate(this.asyncApi, 'userid', 'not exist')]
+    let temporaryPromises = [this.asyncValidate(this.asyncApi, 'emailExist', 'not exist'), this.asyncValidate(this.asyncApi, 'userid', 'not exist')]
     if (temporaryPromises) {
-      return Promise.all(temporaryPromises).then((...a) => {
-        console.log('submit start with', a)
-        this.asyncApi(2000, true).then(() => { console.log('submit success') })
+      return Promise.all(temporaryPromises).then((result) => {
+        console.log('submit start with', result)
+        // return "xxxxxxxxx"
+        return this.asyncApi(2000, true).then((res) => {  // this return value does not goes to the first argument of 'then'. this just continues the parents promise
+          console.log('submit success with async')
+          return res
+        })
       }, (e) => {
         console.log('submit failure by async validation', JSON.parse(e.message))
       })
     } else {
       // async validation 이 없는 경우
-      return this.asyncApi(2000).then(() => { console.log('submit success') }).then(this.setState({ submitting: false }))
+      return this.asyncApi(2000).then(() => { console.log('submit success') })
     }
   }
 
@@ -119,6 +129,7 @@ export default class LoginForm extends Component {
       <Form {...this.state} control={this} className="form-signin" initState={{ username: { value: 'osc' }, password: { value: '123' } }} onSubmit={this.handleSubmit}>
         <div className="input-container">
           <Input name="username" value={username && username.value} className="form-control" disabled={submitting || (false && username && username.promises.length > 0)} />
+          {this.state.asyncValidations && this.state.asyncValidations.emailExist && this.state.asyncValidations.emailExist.status === 'processing' ? 'checking email' : null}
           {username && username.touched && usermessage ? <div>usermessage</div> : undefined}
         </div>
         <div className="input-container">
