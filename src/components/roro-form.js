@@ -94,7 +94,7 @@ export default class Form extends Component {
       return this.state.formControls[name].touched
     }).bind(this.props.control)
 
-    this.props.control.validate = (function (name) {
+    this.props.control.syncValidate = (function (name) {
       if (!this.state.formControls || !this.state.formControls[name]) {
         return null
       }
@@ -111,7 +111,7 @@ export default class Form extends Component {
       return null
     }).bind(this.props.control)
 
-    this.props.control.validateFull = (function (name) {
+    this.props.control.syncValidateFull = (function (name) {
       if (!this.state.formControls || !this.state.formControls[name]) {
         return []
       }
@@ -130,22 +130,143 @@ export default class Form extends Component {
       return validationResult
     }).bind(this.props.control)
 
-    this.props.control.validateAll = (function () {
+    this.props.control.isSyncValid = (function () {
       const formControls = this.state.formControls
       if (!formControls) {
         return false
       }
       for (let i in formControls) {
-        if (this.validate(i) !== null) {
+        if (this.syncValidate(i) !== null) {
           return false
         }
       }
       return true
     }).bind(this.props.control)
 
-    this.props.control.asyncValidate = (function (name) {
-
+    this.props.control.asyncValidate = (function (asyncName, asyncApi, message = 'invalid (please specify a error message in your async validator)', owner = 'none') {
+      console.log('asyncValidating', owner, asyncName)
+      let promise = asyncApi()
+      console.log('xxxxxxx')
+      this.setState((prev) => {
+        return {
+          asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'processing', promise, owner, value: prev.formControls[owner].value } }) // 같은 이름의 새로운 promise는 이전의 것을 덮어쓰고, 전의 것은 garbage collect됩니다.
+        }
+      })
+      return promise.then((result) => {
+        console.log('async validation result', asyncName, result)
+        if (result === true) {
+          this.setState((prev) => {
+            if (prev.asyncValidations && prev.asyncValidations[asyncName] && prev.asyncValidations[asyncName].promise === promise) {
+              return {
+                asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'resolved' } })
+              }
+            } else {
+              console.log('It seems like a async validation has been overwritten by a new one or detached.')
+            }
+          })
+          return asyncName // 이 값은 사용하지 않지만... 일단은 생각 중.
+        } else if (result === false) {
+          this.setState((prev) => {
+            if (prev.asyncValidations && prev.asyncValidations[asyncName] && prev.asyncValidations[asyncName].promise === promise) {
+              return {
+                asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'rejected', message } })
+              }
+            } else {
+              console.log('It seems like a async validation has been overwritten by a new one or detached.')
+            }
+          })
+          throw new Error(JSON.stringify({ asyncName, message }))
+        } else {
+          throw new Error('async api should return a boolean')
+        }
+      })
     }).bind(this.props.control)
+
+    this.props.control.asyncValidateByName = (function (name) {
+      console.log(name)
+      if (this.asyncValidators && this.asyncValidators[name]) {
+        for (let i in this.asyncValidators[name]) {
+          let asyncValidator = this.asyncValidators[name][i]
+          console.log('xxxxxx', asyncValidator, name)
+          this.asyncValidate(asyncValidator.name, asyncValidator.api, asyncValidator.message, name)
+        }
+      }
+    }).bind(this.props.control)
+
+    this.props.control.isAsyncValidating = (function (name) {
+      let asyncValidations = this.state.asyncValidations
+      // console.log(this, asyncValidations)
+      for (let i in asyncValidations) {
+        // console.log('qdqwdqwqdwdqwwd', i, asyncValidations[i].owner, asyncValidations[i].status)
+        if (asyncValidations[i].owner === name && asyncValidations[i].status === 'processing') {
+          return true
+        }
+      }
+      return false
+    }).bind(this.props.control)
+
+    this.props.control.getAsyncError = (function (name) {
+      let asyncValidations = this.state.asyncValidations
+      for (let i in asyncValidations) {
+        if (asyncValidations[i].owner === name && asyncValidations[i].status === 'rejected') {
+          return asyncValidations[i].message
+        }
+      }
+      return null
+    }).bind(this.props.control)
+
+    this.props.control.getAllAsyncError = (function (name) {
+      let result = []
+      let asyncValidations = this.state.asyncValidations
+      for (let i in asyncValidations) {
+        if (asyncValidations[i].owner === name && asyncValidations[i].status === 'rejected') {
+          result.push(asyncValidations[i].message)
+        }
+      }
+      return result
+    }).bind(this.props.control)
+
+    this.props.control.isAsyncResolved = (function (name) {
+      let asyncValidations = this.state.asyncValidations
+      let asyncValidators = this.asyncValidators[name]
+      for (let i in asyncValidators) {
+        if (!asyncValidations || !asyncValidations[asyncValidators[i].name] || asyncValidations[asyncValidators[i].name].status !== 'resolved') {
+          return false
+        }
+      }
+      return true
+    }).bind(this.props.control)
+    this.props.control.isAsyncResolvedOrProcessing = (function (name) {
+      let asyncValidations = this.state.asyncValidations
+      let asyncValidators = this.asyncValidators[name]
+      for (let i in asyncValidators) {
+        if (!asyncValidations || !asyncValidations[asyncValidators[i].name] || asyncValidations[asyncValidators[i].name].status === 'refected') {
+          return false
+        }
+      }
+      return true
+    }).bind(this.props.control)
+    this.props.control.isAllAsyncResolvedOrProcessing = (function () {
+      for (let i in this.asyncValidators) {
+        if (this.isAsyncResolvedOrProcessing(i) !== true) {
+          return false
+        }
+      }
+      return true
+    }).bind(this.props.control)
+    this.props.control.getProcessingPromises = (function () {
+      let promises = []
+      let asyncValidations = this.state.asyncValidations
+      for (let i in asyncValidations) {
+        if (asyncValidations[i].status === 'processing') {
+          promises.push(asyncValidations[i].promise)
+        }
+      }
+      return promises
+    }).bind(this.props.control)
+
+    //async를 initState에도 수행하게 하여야한다.
+
   }
 
   // 구현하면 assertTrue등을 input에도 사용할 수 있다. 하지만 일단은 뒤로 미룸.
@@ -332,9 +453,14 @@ export default class Form extends Component {
   }
 
   handleBlur(e) {
-    console.log('Form handle BLUR', e)
-    console.dir(e.target)
+    console.log('Form BLUR')
     const { name } = e.target
+    if (this.props.control.syncValidate(name) === null) {
+      this.props.control.asyncValidateByName(name)
+    } else {
+      console.log(name, 'asyncvalidating is blocked by syncValidation')
+    }
+    console.log('yyyyyyyy')
     this.props.control.setState((prev, props) => {
       let formControls = prev.formControls || {}
       Object.assign(formControls, { [name]: Object.assign(formControls[name] || {}, { touched: true }) })
@@ -354,7 +480,16 @@ export default class Form extends Component {
 
   handleSubmit(e) {
     e.preventDefault()
-    console.log('Form handle SUBMIT')
+    console.log('Form SUBMIT')
+    if (this.props.control.isSyncValid() !== true) {
+      console.log('submit denied by syncValidation')
+      // set all touched
+      return
+    }
+    if (this.props.control.isAllAsyncResolvedOrProcessing() !== true) {
+      console.log('submit denied by idle asyncValidation ')
+      return
+    }
     this.props.control.setState({ submitting: true })
     const promise = this.props.onSubmit(e)
     console.log('xxxxxxx promise', promise)
@@ -378,7 +513,10 @@ export default class Form extends Component {
     if (component.props.type === 'reset') {
       // console.log('zzzzzz',props)
       return {
-        onClick: () => { this.initialize(this.props.resetState || {}) }
+        onClick: () => {
+          console.log('Form CLICK reset')
+          this.initialize(this.props.resetState || {})
+        }
       }
     } else if (component.type === 'input' || component.type === Input) { //|| typeof component.type === 'function'
       return Object.assign({ value }, {
