@@ -46,7 +46,7 @@ export default class LoginForm extends Component {
       }, ms, value)
     })
 
-    this.asyncValidate = (asyncApi, asyncName, message) => {
+    this.asyncValidate = (asyncName, asyncApi, message) => {
       let promise = asyncApi(5000, true)
       this.setState((prev) => {
         return {
@@ -86,8 +86,9 @@ export default class LoginForm extends Component {
     this.handleSubmit = this.handleSubmit.bind(this)
   }
 
-  handleSubmit() {
-    console.log('LoginForm handleSubmit')
+  handleSubmit(e) {
+    console.log('LoginForm handleSubmit',e.isDefaultPrevented())
+    // e.preventDefault()
     // 아래는 다시 작성 , asyncValidations에 모두 resolve일 경우만 submit, 하나라도 reject이면 무시, promise가 있으면 promise.all
     let temporaryPromises = [this.asyncValidate(this.asyncApi, 'emailExist', 'not exist'), this.asyncValidate(this.asyncApi, 'userid', 'not exist')]
     if (temporaryPromises) {
@@ -116,29 +117,41 @@ export default class LoginForm extends Component {
 
   render() {
     console.log('LoginForm state', this.state) // check this.state and apply properties to JSX like 'disable={this.state.submitting}'
-    const { submitting, username, password } = this.state
+    // console.log(this.state.formControls)
+    const { submitting } = this.state
+
     let usernameValidating = this.state.username && this.state.username.validity && this.state.username.validity.isValid instanceof Promise
 
-    let usermessage = "xxxxx"
+    const initState = {formControls : { username: { value: 'woohee' }, password: { value: '1234' } }}
 
     return (
 
       // {...this.state} control={this} is required to update this.state 
       // initState is optional... redux를 사용하여 초기화 할 수 있을 것입니다.
       // this.initState에 설정가능하다. 하지만 attr 설정이 우선한다.
-      <Form {...this.state} control={this} className="form-signin" initState={{ username: { value: 'osc' }, password: { value: '123' } }} onSubmit={this.handleSubmit}>
+      // Form에서 LoginForm으로 주입한 method들은 this.ready 후 사용하도록 합니다.
+      <Form {...this.state} control={this} className="form-signin" initState={initState} resetState={{}} onSubmit={this.handleSubmit}>
         <div className="input-container">
-          <Input name="username" value={username && username.value} className="form-control" disabled={submitting || (false && username && username.promises.length > 0)} />
+          <Input name="username" 
+          required 
+          validators={['required', 'wwww' ,'email']} 
+          assertTrue={{name:'sss', api:()=>{}, async:true} }
+          className="form-control" 
+          disabled={submitting } //|| (false && username && username.promises.length > 0)} 
+          />
           {this.state.asyncValidations && this.state.asyncValidations.emailExist && this.state.asyncValidations.emailExist.status === 'processing' ? 'checking email' : null}
-          {username && username.touched && usermessage ? <div>usermessage</div> : undefined}
+          {this.ready && this.isTouched('username') && this.validate('username')}
         </div>
         <div className="input-container">
           <div>
-            <input name="password" value={(password && password.value) || ''} type="password" className="form-control" disabled={submitting} />
+            <input name="password" type="password" className="form-control" required disabled={submitting} />
+            {this.ready && this.isTouched('password') && this.validate('password')}
           </div>
         </div>
+        {/* <button type="submit" > ddddd </button> */}
         <Button color="primary" type="submit" block disabled={submitting || usernameValidating}>{submitting ? 'submitting' : 'Sign in'}</Button>
         <Button color="primary" type="reset" block disabled={submitting}>clear</Button>
+        {this.ready && this.validateAll() ? 'valid to submit' : 'invaild to submit'}
       </Form>
     )
   }
