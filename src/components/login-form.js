@@ -52,25 +52,8 @@ export default class LoginForm extends Component {
   }
 
   handleSubmit(e) {
-    console.log('LoginForm handleSubmit', e.isDefaultPrevented())
-    // e.preventDefault()
-    // 아래는 다시 작성 , asyncValidations에 모두 resolve일 경우만 submit, 하나라도 reject이면 무시, promise가 있으면 promise.all
-    // let temporaryPromises = [this.asyncValidate('emailExist', ()=>{return asyncApi(3000,true)}, 'not exist'), this.asyncValidate('userid', ()=>{return asyncApi(1000,true)}, 'not exist')]
-    if (1) {
-      return Promise.all([]).then((result) => {
-        console.log('submit start with', result)
-        // return "xxxxxxxxx"
-        return asyncApi(2000, true).then((res) => {  // this return value does not goes to the first argument of 'then'. this just continues the parents promise
-          console.log('submit success with async')
-          return res
-        })
-      }, (e) => {
-        console.log('submit failure by async validation', JSON.parse(e.message))
-      })
-    } else {
-      // async validation 이 없는 경우
-      return asyncApi(2000).then(() => { console.log('submit success') })
-    }
+    console.log('LoginForm handleSubmit', e)
+    return asyncApi(2000, true)
   }
 
   setAllTouched() {
@@ -82,7 +65,7 @@ export default class LoginForm extends Component {
 
   render() {
     console.log('LoginForm state', this.state, this.ready && this.isAsyncValidating('username'), this.ready && this.isAsyncResolved('username')) // check this.state and apply properties to JSX like 'disable={this.state.submitting}'
-    // console.log(this.state.formControls)
+    // console.log(this.ready && this.state.formControls.password.value.length)
     const { submitting } = this.state
 
     const initState = { formControls: { username: { value: 'woohee@s' }, password: { value: '1234' } } }
@@ -93,25 +76,35 @@ export default class LoginForm extends Component {
       // initState is optional... redux를 사용하여 초기화 할 수 있을 것입니다.
       // this.initState에 설정가능하다. 하지만 attr 설정이 우선한다.
       // Form에서 LoginForm으로 주입한 method들은 this.ready 후 사용하도록 합니다.
+      // onSubmit은 반드시 프로미스를 리턴해야합니다.
       <Form {...this.state} control={this} className="form-signin" initState={initState} resetState={{}} onSubmit={this.handleSubmit}>
         <div className="input-container">
           <Input name="username"
             required
             validators={['required', 'wwww', 'email']}
-            assertTrue={{ name: 'emailExist', api: () => { return asyncApi(5000, true) }, async: true, message: 'not exist' }} // api should return a boolean
+            assertTrue={{ name: 'emailExist', api: () => { return asyncApi(3000, false) }, async: true, message: 'not exist' }} // api should return a boolean
+            assertFalse={{name : 'asserFALSE', regex :/^.{12,14}$/}}
             className="form-control"
             disabled={submitting || this.ready && this.isAsyncValidating('username')} //|| (false && username && username.promises.length > 0)} 
           />
           <div>&nbsp;{this.ready && (
             (this.isAsyncValidating('username') && 'asyncValidating')
             || (this.isTouched('username') && this.syncValidate('username'))
-            || this.getAsyncError('username')
+            || this.getAsyncErrors('username')[0]
           )
           }</div>
         </div>
         <div className="input-container">
           <div>
-            <input name="password" type="password" className="form-control" required disabled={submitting} />
+            <input 
+            // match="username"
+            name="password" 
+            type="password" 
+            className="form-control" 
+            // assertTrue={{ name: 'passwordCheck', api: () => { return asyncApi(4000, false) }, async: true, message: 'not valid' }}
+            required 
+            validators={[{ name : '5~10', regex : /^.{5,15}$/ } , { name: 'passwordCheck', api: () => { return asyncApi(4000, false) }, async: true, message: 'not valid' }]}
+            disabled={submitting} />
             <div>&nbsp;{this.ready && this.isTouched('password') && this.syncValidate('password')}</div>
           </div>
         </div>
