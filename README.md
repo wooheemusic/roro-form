@@ -88,9 +88,9 @@ validator : String || { name : String, regex : RegExp || api : function, async :
 * isSyncValid : boolean
   * 모든 필드가 synchromous valid한지 확인
 * syncValidate(name : String, value : String [Optional]) : String 
-  * name을 가진 필드를 검증, value를 입력하면 react state에서 제어하는 value를 무시하고 주어진 value로 검증
+  * name을 가진 필드를 검증, value를 입력하면 react state에서 제어하는 value를 무시하고 주어진 value로 검증
 * syncValidateFull(name : String, value : String [Optional]) : Array 
-  * name을 가진 필드를 검증, array로 메세지를 출력
+  * name을 가진 필드를 검증, array로 메세지를 출력
 * asyncValidate(name : String, value : String [Optional]) : undefined
   * name을 가진 필드를 검증, value를 입력하면 react state에서 제어하는 value를 무시하고 주어진 value로 검증
 * isAsyncValidating(name : String [Optional]) : boolean
