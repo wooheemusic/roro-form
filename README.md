@@ -63,15 +63,25 @@
   <Button color="primary" type="submit" block disabled={submitting}>{this.ready && this.isAsyncValidating() ? 'validating' : submitting ? 'submitting' : 'Sign in'}</Button>
   <Button color="primary" type="reset" block disabled={submitting}>clear</Button>
 </Form>
+
 ```
 
-##제약사항
+## 제약사항
+
 *Form attributes에 `{...this.state} control={this}`를 선언하는 것은 필수
 *react expression에 this.ready를 사용 후, 주입된 메소드들을 활용할 수 있다. 예) `this.ready && this.isAsyncValidating()`
 
 ## 검증 인터페이스
-`validator : String || { name : String, regex : RegExp || api : function, async : boolean [Optional], message : String [Optional] }`
-`<input validators={[ validator1, validator2, ...]} ...`
-검증의 
-`<input validators={[ validator1, validator2, ...]} `순
-`<input validators={[ validator1, validator2, ...]} `
+* 기본적인 검증 객체 `validator : String || { name : String, regex : RegExp || api : function, async : boolean [Optional], message : String [Optional] }`
+* attributes에 선언 `<input validators={[ validator1, validator2, ...]} ...`
+* 검증의 순서는 validators와 동일
+
+## 메소드 리스트 (Form으로 구성하는 JSX에 사용)
+* isSyncValid : boolean
+ ddd
+* syncValidate(name : String, value : String [Optional]) : String 
+ ddd
+
+
+
+
