@@ -66,20 +66,26 @@
 
 ```
 
-## 제약사항
+## 특이사항
 * Form attributes에 `{...this.state} control={this}`를 선언하는 것은 필수
-* react expression에 this.ready를 사용 후, 주입된 메소드들을 활용할 수 있다. 예) `this.ready && this.isAsyncValidating()`
+* react expression에 this.ready와 함께 다양한 메소드들을 활용할 수 있다. 예) `this.ready && this.isAsyncValidating()`
 
 ## 검증 인터페이스
-* 기본적인 검증 객체 `validator : String || { name : String, regex : RegExp || api : function, async : boolean [Optional], message : String [Optional] }`
-* attributes에 선언 `<input validators={[ validator1, validator2, ...]} ...`
+* 기본적인 검증 객체 
+```
+validator : String || { name : String, regex : RegExp || api : function, async : boolean [Optional], message : String [Optional] }
+```
+* attributes에 선언 
+```jsx
+<input validators={[ validator1, validator2, ...]} ... />
+```
 * 검증의 순서는 validators와 동일
 
 ## 메소드 리스트 (Form으로 구성하는 JSX에 사용)
 * isSyncValid : boolean
- ddd
+  * ddd
 * syncValidate(name : String, value : String [Optional]) : String 
- ddd
+  * ddd
 
 
 
