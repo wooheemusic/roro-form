@@ -103,15 +103,15 @@ validator : String || { name : String, regex : RegExp || api : function, async :
   
 * getAsyncRejection(name : String) : Array
   * 이미 async 검증을 했다면, 에러 메세지를 array로 출력
-  * idle을 체크하지 않음
+  * idle을 체크하지 않음
   
 * getAsyncStatusArray(name : String) : Array 
   * 현재 async 검증의 상태를 리턴
   * `['resolved', 'processing', 'rejected', 'idle', ... ]`
   
 * isAsyncValid(lowerBound = 'processing' : String, name : String [Optional]) : boolean
-  * lowerBound가 processing이면, processing이 있어도 true, lowerBound가 resolved이면 모든 항목이 resolved이어야 합니다.
-  * name은 특정 필드를 지칭, 없으면 모든 필드
+  * lowerBound가 processing이면, processing이 있어도 true, lowerBound가 resolved이면 모든 항목이 resolved이어야 합니다.
+  * name은 특정 필드를 지칭, 없으면 모든 필드
   
 * getProcessingPromises : Array<Promise>
   * state에서의 상태가 processing인 promise를 받아옵니다.
