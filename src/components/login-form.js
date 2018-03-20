@@ -93,12 +93,14 @@ export default class LoginForm extends Component {
         onFailure={this.onFailer}
       >
         <h1> Login Form </h1>
+        <p> <a href="https://github.com/wooheemusic/roro-form">https://github.com/wooheemusic/roro-form</a></p>
+        <p> 아래의 redux-form에 문제가 있어 직접 작성</p>
         <div className="input-container">
           <Input name="username"
             required
             validators={['required', 'wwww', 'email']}
             assertTrue={{ name: 'emailExist', api: () => { return asyncApi(3000, true) }, async: true, message: 'not exist' }} // api should return a boolean
-            assertFalse={{ name: 'asserFALSE', regex: /^.{12,14}$/ }}
+            // assertFalse={{ name: 'asserFALSE', regex: /^.{12,14}$/ }}
             className="form-control"
             disabled={submitting || this.ready && this.isAsyncValidating('username')} // (false && username && username.promises.length > 0)} 
           />
