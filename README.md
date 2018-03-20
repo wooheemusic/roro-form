@@ -87,25 +87,34 @@ validator : String || { name : String, regex : RegExp || api : function, async :
 ## 메소드 리스트 (Form으로 구성하는 JSX에 사용)
 * isSyncValid : boolean
   * 모든 필드가 synchromous valid한지 확인
+  
 * syncValidate(name : String, value : String [Optional]) : String 
   * name을 가진 필드를 검증, value를 입력하면 react state에서 제어하는 value를 무시하고 주어진 value로 검증
+  
 * syncValidateFull(name : String, value : String [Optional]) : Array 
   * name을 가진 필드를 검증, array로 메세지를 출력
+  
 * asyncValidate(name : String, value : String [Optional]) : undefined
   * name을 가진 필드를 검증, value를 입력하면 react state에서 제어하는 value를 무시하고 주어진 value로 검증
+  
 * isAsyncValidating(name : String [Optional]) : boolean
   * 진행중인 async validation이 있다면 true를 출력, name을 입력하면 해당 필드에 관해서만 출력.
   * idle을 체크하지 않음
+  
 * getAsyncRejection(name : String) : Array
   * 이미 async 검증을 했다면, 에러 메세지를 array로 출력
   * idle을 체크하지 않음
+  
 * getAsyncStatusArray(name : String) : Array 
   * 현재 async 검증의 상태를 리턴
   * `['resolved', 'processing', 'rejected', 'idle', ... ]`
+  
 * isAsyncValid(lowerBound = 'processing' : String, name : String [Optional]) : boolean
   * lowerBound가 processing이면, processing이 있어도 true, lowerBound가 resolved이면 모든 항목이 resolved이어야 합니다.
   * name은 특정 필드를 지칭, 없으면 모든 필드
+  
 * getProcessingPromises : Array<Promise>
   * state에서의 상태가 processing인 promise를 받아옵니다.
   * promise가 실제로 resolved여도 state가 processing이라면 리턴 값에 포함됩니다. react의 제어 플레임에 동기화되어 있음.
+  
 
