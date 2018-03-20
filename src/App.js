@@ -4,16 +4,18 @@ import './App.css';
 // import Kitchen from 'components/kitchen'
 // import Table from 'components/table'
 // import ReactForm from 'components/reactForm'
-// import { Provider } from 'react-redux'
-// import { createStore, combineReducers } from 'redux'
-// import { reducer as formReducer } from 'redux-form'
-// import ReduxForm, {handleSubmit } from 'components/reduxForm'
+
+import { Provider } from 'react-redux'
+import { createStore, combineReducers } from 'redux'
+import { reducer as formReducer } from 'redux-form'
+import ReduxForm, {handleSubmit } from 'components/reduxForm'
+
 import LoginForm from 'components/login-form'
 import './core.scss'
 
-// const reducer = combineReducers({
-//   form: formReducer // mounted under "form"
-// })
+const reducer = combineReducers({
+  form: formReducer // mounted under "form"
+})
 
 // combineReducers({
 //   form: formReducer.validation({
@@ -21,7 +23,7 @@ import './core.scss'
 //   })
 // })
 
-// const store = createStore(reducer)
+const store = createStore(reducer)
 
 class App extends Component {
   render() {
@@ -41,9 +43,9 @@ class App extends Component {
           </Table>
         </Kitchen > */}
         {/* <ReactForm /> */}
-        {/* <Provider store={store}>
+        <Provider store={store}>
           <ReduxForm onSubmit={handleSubmit}/>
-        </Provider> */}
+        </Provider>
         <LoginForm name="My Form"/>
       </div>
     );

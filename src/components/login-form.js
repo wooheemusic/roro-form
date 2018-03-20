@@ -53,7 +53,7 @@ export default class LoginForm extends Component {
 
   handleSubmit(e) {
     console.log('LoginForm handleSubmit', e)
-    return asyncApi(2000, true)
+    return asyncApi(4000, true).then(()=>{alert('success')})
   }
 
   setAllTouched() {
@@ -64,11 +64,18 @@ export default class LoginForm extends Component {
   }
 
   render() {
-    console.log('LoginForm state', this.state, this.ready && this.isAsyncValidating('username'), this.ready && this.isAsyncResolved('username')) // check this.state and apply properties to JSX like 'disable={this.state.submitting}'
+    console.log('LoginForm state', this.state) // check this.state and apply properties to JSX like 'disable={this.state.submitting}'
+    // if (this.state.formControls && this.state.formControls.username ) {
+      // console.log(this.ready && this.state.formControls.username.value)
+    // }else {
+    //   console.log('formContols are ', this.formControls)
+    // }
+
+    
     // console.log(this.ready && this.state.formControls.password.value.length)
     const { submitting } = this.state
 
-    const initState = { formControls: { username: { value: 'woohee@s' }, password: { value: '1234' } } }
+    const initState = { formControls: { username: { value: 'woohee@s' }, password: { value: '1134' } } }
 
     return (
 
@@ -77,41 +84,56 @@ export default class LoginForm extends Component {
       // this.initState에 설정가능하다. 하지만 attr 설정이 우선한다.
       // Form에서 LoginForm으로 주입한 method들은 this.ready 후 사용하도록 합니다.
       // onSubmit은 반드시 프로미스를 리턴해야합니다.
-      <Form {...this.state} control={this} className="form-signin" initState={initState} resetState={{}} onSubmit={this.handleSubmit}>
+      <Form {...this.state} control={this}
+        className="form-signin"
+        initState={initState}
+        resetState={{}}
+        onSubmit={this.handleSubmit}
+        onSuccess={this.onSuccess}
+        onFailure={this.onFailer}
+      >
+        <h1> Login Form </h1>
         <div className="input-container">
           <Input name="username"
             required
             validators={['required', 'wwww', 'email']}
-            assertTrue={{ name: 'emailExist', api: () => { return asyncApi(3000, false) }, async: true, message: 'not exist' }} // api should return a boolean
-            assertFalse={{name : 'asserFALSE', regex :/^.{12,14}$/}}
+            assertTrue={{ name: 'emailExist', api: () => { return asyncApi(3000, true) }, async: true, message: 'not exist' }} // api should return a boolean
+            assertFalse={{ name: 'asserFALSE', regex: /^.{12,14}$/ }}
             className="form-control"
-            disabled={submitting || this.ready && this.isAsyncValidating('username')} //|| (false && username && username.promises.length > 0)} 
+            disabled={submitting || this.ready && this.isAsyncValidating('username')} // (false && username && username.promises.length > 0)} 
           />
           <div>&nbsp;{this.ready && (
             (this.isAsyncValidating('username') && 'asyncValidating')
             || (this.isTouched('username') && this.syncValidate('username'))
-            || this.getAsyncErrors('username')[0]
+            || this.getAsyncRejection('username')[0]
           )
           }</div>
         </div>
         <div className="input-container">
           <div>
-            <input 
-            // match="username"
-            name="password" 
-            type="password" 
-            className="form-control" 
-            // assertTrue={{ name: 'passwordCheck', api: () => { return asyncApi(4000, false) }, async: true, message: 'not valid' }}
-            required 
-            validators={[{ name : '5~10', regex : /^.{5,15}$/ } , { name: 'passwordCheck', api: () => { return asyncApi(4000, false) }, async: true, message: 'not valid' }]}
-            disabled={submitting} />
-            <div>&nbsp;{this.ready && this.isTouched('password') && this.syncValidate('password')}</div>
+            <input
+              // match="username"
+              name="password"
+              type="password"
+              className="form-control"
+              // assertTrue={{ name: 'passwordCheck', api: () => { return asyncApi(4000, false) }, async: true, message: 'not valid' }}
+              required
+              validators={[{ name: '5~10', regex: /^.{5,15}$/ }, { name: 'passwordCheck', api: () => { return asyncApi(3000, true) }, async: true, message: 'not valid' }]}
+              disabled={submitting || this.ready && this.isAsyncValidating('password')} 
+              />
+            <div>&nbsp;{this.ready && (
+              (this.isAsyncValidating('password') && 'asyncValidating')
+              || (this.isTouched('password') && this.syncValidate('password'))
+              || this.getAsyncRejection('password')[0]
+            )
+            }</div>
           </div>
         </div>
         {/* <button type="submit" > ddddd </button> */}
-        <Button color="primary" type="submit" block disabled={submitting}>{submitting ? 'submitting' : 'Sign in'}</Button>
+        <Button color="primary" type="submit" block disabled={submitting}>{this.ready && this.isAsyncValidating() ? 'validating' : submitting ? 'submitting' : 'Sign in'}</Button>
         <Button color="primary" type="reset" block disabled={submitting}>clear</Button>
-        {this.ready && this.isSyncValid() ? 'valid to submit' : 'invaild to submit'}
+        {/* {this.ready && this.isSyncValid() && this.isAsyncValid() ? 'valid to submit' : 'invaild to submit'} */}
+        <br/><br/><br/><br/><br/><br/>
       </Form>
     )
   }

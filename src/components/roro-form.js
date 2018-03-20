@@ -5,7 +5,7 @@ export class Input extends Component {
 
   constructor(props) {
     super(props)
-    console.log('Input const', this.props)
+    // console.log('Input const', this.props)
 
     // this.should embrace the Form's managed props
     this.disallowedProps = [
@@ -24,7 +24,7 @@ export class Input extends Component {
   }
 
   render() {
-    console.log('Input render', this.props)
+    // console.log('Input render', this.props)
     const filteredProps = this.getFilteredProps(this.props)
     return (
       <input {...filteredProps} />
@@ -41,30 +41,32 @@ export class Input extends Component {
 // issue 0 : react 공식문서 학습이 70%정도 밖에 되지 않으므로, 모두 학습 후 개선 또는 다시 작성한다.
 // issue 0 : 배포와 라이선스에 관해 상의해야한다.
 
-// major
-// issue 1 : this.ready등을 제거하기 위해 'export default ready(component)' 방식으로 변경할지 생각 중
-// issue 1 : customizing 혹은 logging을 위해 다양한 hook을 제공해야한다. promise의 대부분 stack에서 logging할 수 있도록 할 것이다.
-// issue 1 : html5의 모든 스펙을 구현해야한다. (radio, checkbox, range, textarea, select, contenteditable, submit action async ...)
-// issue 1 : 동적인 필드 추가 등, 타 api들의 재미있는 UI를 구현해야한다.
+// eager
 // issue 1 : unmount상태에서 async process에서의 exception에 대비 해야한다.
-// issue 1 : ref의 가용성에 관해 알아보아야 한다. 
-// issue 1 : constructor에서 meta를 얼마나 더 수집해야하는가. 예) name을 수집하면 injectFunctionsToSuper등에서 활용할 수 있다
-// issue 1 : built-in input에 관해서는 constructValidators에서 built-in attribute 이외의 것들만 build하도록 변경하여야한다.
-// issue 1 : uncontrolled component 디자인 구상, ref? no? ex) type="file" 
 
-// minor
-// issue 2 : validator name에 reserved words(match 등)를 검사해야한다. 중복검사도 해야한다.
-// issue 2 : suppressBuiltInValidation 구현, Input은 default true, input은 default false 
-// issue 2 : initState에 touched를 assign
-// issue 2 : reset 하면 this.ready && this.formContols.password.value등이 버그가 난다.
-// issue 2 : async를 init에도 수행
-// issue 2 : async name 중복 체크, throw new Error
+// lazy
+// issue 1 : uncontrolled component 디자인 구상, ref? no? ex) type="file" 
+// issue 1 : built-in input에 관해서는 constructValidators에서 built-in attribute 이외의 것들만 build하도록 변경하여야한다.
+// issue 1 : html5의 모든 스펙을 구현해야한다. (radio, checkbox, range, textarea, select, contenteditable, submit action async ...)
+// issue 1 : querystring interface 확인
+// issue 1 : ref의 가용성에 관해 알아보아야 한다. 
+// issue 1 : this.ready등을 제거하기 위해 'export default ready(component)' 방식으로 변경할지 생각 중
+// issue 1 : old browser, xss
+
+// config & hook
+// issue 1 : customizing 혹은 logging을 위해 다양한 hook을 제공해야한다. promise의 대부분 stack에서 logging할 수 있도록 할 것이다.
+// issue 3 : suppressBuiltInValidation 구현, Input은 default true, input은 default false 
 
 // extra
+// issue 9 : loop performance 개선
 // issue 9 : PureComponent와 immutability, nested default, Object.assign 재고
 // issue 9 : componentDidCatch 사용성 테스트, 좋은 인터페이스인가
-// issue 9 : dev logging 구현
+// issue 9 : dev logging, dev minifying 구현 (__DEV__)
+// issue 1 : constructor에서 meta를 얼마나 더 수집해야하는가. 예) name을 수집하면 injectFunctionsToSuper등에서 활용할 수 있다
+// issue 1 : 동적인 필드 추가 등, 타 api들의 재미있는 UI를 구현해야한다.
 
+
+// https://reactjs.org/docs/codebase-overview.html#development-and-production
 
 export default class Form extends Component {
 
@@ -76,11 +78,11 @@ export default class Form extends Component {
     this.defaultState = {
       submitting: false,
       pristine: true,
-      formControls: {},
+      formControls: undefined, // {}
       config: { // 모든 구현은 나중으로 미룸. // 이 설정들을 그냥 hook으로 제공하는 것이 더 좋을지도 모른다는 생각이 든다. 원하는 필드에만 설정을 적용하고 싶을 수도 있기 때문에?
         asyncValidateOnChange: false,
         asyncValidateOnBlur: true, // submit에서는 idle asyc validation을 모두 수행하는 것이 당연하다.
-
+        asyncValidateOnInit: true,
       },
     }
 
@@ -95,6 +97,15 @@ export default class Form extends Component {
     this.managedProps = ['required', 'email', 'pattern', 'assertTrue', 'assertFalse', 'match']
 
     const allInputs = this.readAllInputs(this)
+
+    const meta = []
+    for (let i in allInputs) {
+      // console.log(allInputs[i], allInputs[i].name)
+      let name = allInputs[i].props.name
+      if (name)
+        meta.push(name)
+    }
+    this.props.control.setState({ meta }) // constructor에서 상위 컴포넌트의 setState는 componentDidMount에서 한 것과 같다.
 
     control.syncValidators = {}
     control.asyncValidators = {}
@@ -116,18 +127,10 @@ export default class Form extends Component {
 
     this.ready = true
 
-    // this.state = this.state ? this.state.formControls ? this.state : Object.assign(this.state, { formControls: {} }) : { formControls: {} }
-
-    this.setState({ formControls: {} })
-
-    // const { state , state : { formControls } } = this  // formContols가 초기화 되어 대체되면
-
-    // 정의되지
     this.getValue = function (name) {
       return (!this.state.formControls[name]) ? '' : this.state.formControls[name].value || ''
     }
 
-    // this.state의 touched와 다른 점이 있다면, touch하지 않았어도 initState에 의해 값이 있으면 true를 리턴한다.
     this.isTouched = function (name) {
       if (!this.state.formControls[name]) {
         return false // null
@@ -137,38 +140,37 @@ export default class Form extends Component {
 
     // 해당 name을 가진 필드에 관해 sync validation을 수행
     // 값이 없어도 null을 리턴함을 주의
-    this.syncValidate = function (name) {
-      if (!this.state.formControls[name]) {
+    this.syncValidate = function (name, value) {
+      if (!value && !this.state.formControls[name]) {
         return null
       }
       let ownValidators = this.syncValidators[name]
       if (ownValidators instanceof Array) {
         for (let i in ownValidators) {
           let ownValidator = ownValidators[i]
-          if (ownValidator.regex && ownValidator.regex.test(this.getValue(name)) === (ownValidator.assertFalse || false)) {
-            return ownValidator.name
-          } else if (ownValidator.api && ownValidator.api(this.getValue(name)) === false) {
-            return ownValidator.name
+          if (ownValidator.regex && ownValidator.regex.test(value || this.getValue(name)) === (ownValidator.assertFalse || false)) {
+            return ownValidator.message || ownValidator.name
+          } else if (ownValidator.api && ownValidator.api(value || this.getValue(name)) === false) {
+            return ownValidator.message || ownValidator.name
           }
         }
       }
       return null
     }
 
-    this.syncValidateFull = function (name) {
-      if (!this.state.formControls[name]) {
-        return []
-      }
+    this.syncValidateFull = function (name, value) {
       let validationResult = []
+      if (!value && !this.state.formControls[name]) {
+        return validationResult
+      }
       let ownValidators = this.syncValidators[name]
       if (ownValidators instanceof Array) {
         for (let i in ownValidators) {
           let ownValidator = ownValidators[i]
-          if (ownValidator.regex && ownValidator.regex.test(this.getValue(name)) === (ownValidator.assertFalse || false)) {
-            console.log(ownValidator.name, ownValidator.regex)
-            validationResult.push(ownValidator.name)
-          } else if (ownValidator.api && ownValidator.api(this.getValue(name)) === false) {
-            validationResult.push(ownValidator.name)
+          if (ownValidator.regex && ownValidator.regex.test(value || this.getValue(name)) === (ownValidator.assertFalse || false)) {
+            validationResult.push(ownValidator.message || ownValidator.name)
+          } else if (ownValidator.api && ownValidator.api(value || this.getValue(name)) === false) {
+            validationResult.push(ownValidator.message || ownValidator.name)
           }
         }
       }
@@ -186,13 +188,29 @@ export default class Form extends Component {
       return true
     }
 
-    this.asyncValidate = function (asyncName, asyncApi, message = 'invalid (please specify a error message in your async validator)', owner) {
+    this.asyncValidateInternal = function (asyncName, asyncApi, message = asyncName, owner, specifiedValue) {
       console.log('asyncValidating', owner, asyncName)
-      let promise = asyncApi()
+      // if (!this.state.formControls[owner]) {
+      //   return
+      // }
+      let value = specifiedValue || this.state.formControls[owner].value
+      // 바로 state를 읽는건 위험한가? NO. blur와 click 이벤트 사이에 blur에서 발생한 모든 setState merging과 render가 완료된다. 
+      // event occur -> state merging -> render 가 하나의 파티션을 이루는 것 같다...promise가 프레임들의 연속성을 보장하듯이 그런식으로 구현했을 것이라 추측...
+      // 모든 event message에 관하여 같을 것이라 생각... 그래도 항상 테스트하자.
+      console.log(this.state)
+      if (this.state.asyncValidations) {
+        let asyncValidation = this.state.asyncValidations[asyncName]
+        // console.log('xxx', value, asyncValidation.value)
+        if (asyncValidation && (asyncValidation.value === value)) {
+          console.log('async validation is suppressed with', value)
+          return
+        }
+      }
+      let promise = asyncApi(value)
       // console.log('xxxxxxx')
       this.setState((prev) => {
         return {
-          asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'processing', promise, owner, value: prev.formControls[owner].value } }) // 같은 이름의 새로운 promise는 이전의 것을 덮어쓰고, 전의 것은 garbage collect됩니다.
+          asyncValidations: Object.assign(prev.asyncValidations || {}, { [asyncName]: { status: 'processing', promise, owner, value, message } }) // 같은 이름의 새로운 promise는 이전의 것을 덮어쓰고, 전의 것은 garbage collect됩니다.
         }
       })
       promise = promise.then((result) => {
@@ -227,101 +245,139 @@ export default class Form extends Component {
       })
     }
 
-    this.asyncValidateByName = function (name) {
-      console.log(name)
+    this.asyncValidate = function (name, value) {
       if (this.asyncValidators && this.asyncValidators[name]) {
         for (let i in this.asyncValidators[name]) {
           let asyncValidator = this.asyncValidators[name][i]
-          // console.log('xxxxxx', asyncValidator, name)
-          this.asyncValidate(asyncValidator.name, asyncValidator.api, asyncValidator.message, name)
+          this.asyncValidateInternal(asyncValidator.name, asyncValidator.api, asyncValidator.message, name, value)
         }
       }
     }
 
+    // check only 'processing's (this does not check 'idle' status)
     this.isAsyncValidating = function (name) {
-      let asyncValidations = this.state.asyncValidations
-      // console.log(this, asyncValidations)
-      for (let i in asyncValidations) {
-        // console.log('qdqwdqwqdwdqwwd', i, asyncValidations[i].owner, asyncValidations[i].status)
-        if (asyncValidations[i].owner === name && asyncValidations[i].status === 'processing') {
-          return true
+      if (name) {
+        // 특정필드에 관해서만
+        let asyncValidations = this.state.asyncValidations
+        let asyncValidators = this.asyncValidators[name]
+        for (let i in asyncValidators) {
+          // let asyncValidator = asyncValidators[i]
+          let asyncName = asyncValidators[i].name
+          // 아직 검증 안했다면 continue
+          if (!asyncValidations || !(asyncName in asyncValidations)) {
+            continue
+          }
+          // 상태가 'processing'이라면 true
+          let asyncValidation = asyncValidations[asyncName]
+          if (asyncValidation.status === 'processing') {
+            return true
+          }
         }
+        return false
+      } else {
+        // 모든 필드에 관해서
+        let asyncValidations = this.state.asyncValidations
+        for (let i in asyncValidations) {
+          if (asyncValidations[i].status === 'processing') {
+            return true
+          }
+        }
+        return false
       }
-      return false
     }
 
-    // this.getAsyncError = function (name) {
-    //   let asyncValidations = this.state.asyncValidations
-    //   for (let i in asyncValidations) {
-    //     if (asyncValidations[i].owner === name && asyncValidations[i].status === 'rejected') {
-    //       return asyncValidations[i].name
-    //     }
-    //   }
-    //   return null
-    // }
-
-    this.getAsyncErrors = function (name) {
+    // check only 'rejected's and returns their error messages (this does not check 'idle' status)
+    this.getAsyncRejection = function (name) {
       let result = []
       let asyncValidations = this.state.asyncValidations
       for (let i in asyncValidations) {
         if (asyncValidations[i].owner === name && asyncValidations[i].status === 'rejected') {
-          result.push(i)
+          result.push(asyncValidations[i].message)
         }
       }
       return result
     }
 
-    this.getAsyncStates = function (name) {
+    // returns [ 'resolved' , 'resolved', 'processing',... , 'idle' ]
+    // 'idle' for not-validated 
+    this.getAsyncStatusArray = function (name) {
       let result = []
-      let asyncValidations = this.state.asyncValidations
-      for (let i in asyncValidations) {
-        if (asyncValidations[i].owner === name) {
-          result.push(asyncValidations[i].status)
-        }
-      }
-      return result
-    }
-
-    this.isAsyncResolved = function (name) {
       let asyncValidations = this.state.asyncValidations
       let asyncValidators = this.asyncValidators[name]
       for (let i in asyncValidators) {
-        if (!asyncValidations || !asyncValidations[asyncValidators[i].name] || asyncValidations[asyncValidators[i].name].status !== 'resolved') {
+        if (asyncValidators[i].name in asyncValidations) {
+          result.push(asyncValidations[i].status)
+        } else {
+          result.push('idle')
+        }
+      }
+      return result
+    }
+
+    // private
+    // level 'processing' or 'resolved' 
+    // if the 2nd arg is 'processing', it return false only if it has at least one 'reject'
+    // if the 2nd arg is 'resolved', it return false only if it has at least one 'reject' or 'processing' 
+    this.isAsyncValidInternal = function (lowerBound = 'processing', name) {
+      let asyncValidations = this.state.asyncValidations
+      let asyncValidators = this.asyncValidators[name]
+      for (let i in asyncValidators) {
+        // let asyncValidator = asyncValidators[i]
+        let asyncName = asyncValidators[i].name
+        // 아직 검증 안했다면 false
+        if (!asyncValidations || !(asyncName in asyncValidations)) {
+          return false
+        }
+        // 상태가 lowerBound 보다 아래라면 false
+        let asyncValidation = asyncValidations[asyncName]
+        if (asyncValidation.status === 'rejected' || (lowerBound !== 'processing' && asyncValidation.status === 'processing')) {
+          return false
+        }
+        // state의 value와 검증한 value가 다르다면 false
+        if (!this.state.formControls || !this.state.formControls[name] || (asyncValidation.value !== this.state.formControls[name].value)) {
           return false
         }
       }
       return true
     }
 
-    // this.isAsyncValid = function () {
+    // public
+    this.isAsyncValid = function (lowerBound = 'processing', name) {
+      // 특정 필드에 관해서만
+      if (name) {
+        return this.isAsyncValidInternal(lowerBound, name)
+      } else {
+        // 모든 필드에 관해서
+        for (let name in this.asyncValidators) {
+          if (this.isAsyncValidInternal(lowerBound, name) === false) {
+            return false
+          }
+        }
+        return true
+      }
+    }
+
+    // this.isAsyncResolvedOrProcessing = function (name) {
     //   let asyncValidations = this.state.asyncValidations
     //   let asyncValidators = this.asyncValidators[name]
     //   for (let i in asyncValidators) {
-    //     if (!asyncValidations || !asyncValidations[asyncValidators[i].name] || asyncValidations[asyncValidators[i].name].status !== 'resolved') {
+    //     if (!asyncValidations || !asyncValidations[asyncValidators[i].name] || asyncValidations[asyncValidators[i].name].status === 'rejected') {
     //       return false
     //     }
     //   }
     //   return true
     // }
 
-    this.isAsyncResolvedOrProcessing = function (name) {
-      let asyncValidations = this.state.asyncValidations
-      let asyncValidators = this.asyncValidators[name]
-      for (let i in asyncValidators) {
-        if (!asyncValidations || !asyncValidations[asyncValidators[i].name] || asyncValidations[asyncValidators[i].name].status === 'rejected') {
-          return false
-        }
-      }
-      return true
-    }
-    this.isAllAsyncResolvedOrProcessing = function () {
-      for (let i in this.asyncValidators) {
-        if (this.isAsyncResolvedOrProcessing(i) !== true) {
-          return false
-        }
-      }
-      return true
-    }
+    // this.isAllAsyncResolvedOrProcessing = function () {
+    //   for (let i in this.asyncValidators) {
+    //     if (this.isAsyncResolvedOrProcessing(i) !== true) {
+    //       return false
+    //     }
+    //   }
+    //   return true
+    // }
+
+    // 아직 진행중인 promise를 모두 받아온다. promise객체가 실제로 resolved되었더라도, 그것과 상관 없이 react component의 this.asyncValidations[name].status를 기준으로 받아온다.
     this.getProcessingPromises = function () {
       let promises = []
       let asyncValidations = this.state.asyncValidations
@@ -373,6 +429,14 @@ export default class Form extends Component {
     }
   }
 
+  checkDuplication(name, array) {
+    for (let i in array) {
+      if (name === array[i] || name === array[i].name) {
+        return false
+      }
+    }
+  }
+
   constructValidators(input, syncValidators = {}, asyncValidators = {}) {
     const name = input.props.name
     if (!name) {
@@ -386,13 +450,34 @@ export default class Form extends Component {
     // validators={{ name : 'aaa', regex: /.../}} 등으로 Array가 아닐 경우 Array로 변경합니다.
     let originalValidators = typeof propsValidators === 'object' ? propsValidators instanceof Array ? propsValidators : [propsValidators] : []
 
+
+    // if (__DEV__) {
+    //   console.log('__DEV__',__DEV__)
+    // }
+    // console.log(window)
+
+    // __DEV__
     // validators attribute의 값들을 처리하여 내부 api를 구성합니다
-    let validators = originalValidators.map((validator) => {
-      if (typeof validator === 'object' && validator !== null && ('api' in validator || 'regex' in validator)) {
+    let validators = originalValidators.map((validator, index, arr) => {
+      let name = validator.name || validator
+      if (typeof validator === 'object') {  // && validator !== null && ('api' in validator || 'regex' in validator)) {
+        if (this.managedProps.indexOf(name) !== -1) {
+          throw new Error(name, 'is reserved')
+        }
+        for (let i = 0; i < index; i++) {
+          if (name === arr[i].name) {
+            throw new Error(name, 'is duplicated')
+          }
+        }
         return validator
-      }
-      if (typeof validator === 'string') {
-        return this.getValidatorByName(validator)
+      } else if (typeof validator === 'string') {
+        // for (let i = 0; i < index; i++) {
+        //   if (name === arr[i] || name === arr[i].name) {
+        //     console.log(name, i)
+        //     throw new Error(name, 'is duplicated')
+        //   }
+        // }
+        return name
       }
       return null
     })
@@ -404,12 +489,16 @@ export default class Form extends Component {
       switch (validatorName) {
         case 'required':
           if (input.props.required && index === -1) {
-            validators.unshift(this.getValidatorByName('required'))
+            validators.unshift(this.getValidatorByName(validatorName))
+          } else {
+            validators[index] = this.getValidatorByName(validatorName)
           }
           break;
         case 'email':
           if (input.props.type === validatorName && index === -1) {
             validators.push(this.getValidatorByName(validatorName))
+          } else {
+            validators[index] = this.getValidatorByName(validatorName)
           }
           break;
         case 'pattern':
@@ -492,6 +581,19 @@ export default class Form extends Component {
       return true
     })
 
+    for (let i in internalAsyncValidators) {
+      let asyncName = internalAsyncValidators[i].name
+      for (let name in asyncValidators) {
+        let namedAsyncValidators = asyncValidators[name]
+        for (let j in namedAsyncValidators) {
+          // console.log(namedAsyncValidators[j].name, asyncName)
+          if (namedAsyncValidators[j].name === asyncName) {
+            throw new Error('asyncNames are duplicated.', asyncName)
+          }
+        }
+      }
+    }
+
     syncValidators[name] = internalSyncValidators
     asyncValidators[name] = internalAsyncValidators
 
@@ -500,28 +602,45 @@ export default class Form extends Component {
 
   // Form component의 default설정에 initState attr로 정의된 state를 병합합니다.
   initialize(state) {
+
+    state = state ? state.formControls : (this.props.initState && this.props.initState.formControls) || (this.props.control.initState && this.props.control.initState.formControls)
+
     this.props.control.setState((prev) => {
-      for (let i in prev) {
-        prev[i] = undefined
+      // console.log(prev.meta)
+      for (let p in prev) {
+        if (p === 'meta') continue
+        prev[p] = undefined
       }
-      return Object.assign(prev, this.defaultState, state || this.props.initState || this.props.control.initState || this.props.resetState) // assign은 shallow하므로 defaultState와 initState에 관해서만 nested default로 변경할 예정
+
+      let formControls = {}
+      for (let i in prev.meta) {
+        formControls[prev.meta[i]] = { value: '', touched: false }
+      }
+      Object.assign(formControls, state)
+      // Object.assign(prev, JSON.parse(JSON.stringify(this.defaultState)), {formControls} )
+      Object.assign(prev, this.defaultState, { formControls })
+
+      return prev
     })
+
+    // console.log(state)
+
+    for (let name in state) {
+        let value = state[name].value
+        if (this.props.control.syncValidate(name, value) === null) {
+          this.props.control.asyncValidate(name, value)
+        }
+    }
+
   }
 
+  // 언제 실행되는 것인지;
   componentDidCatch(error, info) {
     console.log('componentDidCatch', error, info)
   }
 
   componentDidMount() {
     this.initialize()
-  }
-
-  validate(name, value) {
-    return { value }
-  }
-
-  validateAsync(name, value) {
-    return { value, isValid: new Promise(() => { }) }
   }
 
   handleChange(e) {
@@ -540,7 +659,7 @@ export default class Form extends Component {
     console.log('Form BLUR')
     const { name } = e.target
     if (this.props.control.syncValidate(name) === null) {
-      this.props.control.asyncValidateByName(name)
+      this.props.control.asyncValidate(name)
     } else {
       console.log(name, 'asyncvalidating is blocked by syncValidation')
     }
@@ -562,51 +681,59 @@ export default class Form extends Component {
     this.props.control.setState({ submitting: false })
   }
 
+  setAllTouched(){
+    this.props.control.setState((prev)=>{
+      let formControls = prev.formControls
+      for (let name in formControls) {
+        formControls[name].touched = true
+      }
+      return prev
+    })
+  }
+
   handleSubmit(e) {
     e.preventDefault()
     console.log('Form SUBMIT')
+
+    this.setAllTouched()
+
     if (this.props.control.isSyncValid() !== true) {
       console.log('submit denied by syncValidation')
       // set all touched
       return
     }
-    if (this.props.control.isAllAsyncResolvedOrProcessing() !== true) {
-      console.log('submit denied by idle asyncValidation ')
+    if (this.props.control.isAsyncValid() !== true) {
+      console.log('submit denied by asyncValidation, it may be rejected or not excuted ')
       return
     }
 
+    // submit start
     this.props.control.setState({ submitting: true })
 
     const processingPromises = this.props.control.getProcessingPromises()
-
     if (processingPromises.length > 0) {
       return Promise.all(processingPromises).then((result) => {
         console.log('submit start after async validation with', result, 'of', processingPromises)
-        // console.log('submit is scoped by', this)
-        // console.log('submit with event', e)
-        // 여기서 result를 검증해야한다.
-        return this.props.onSubmit(e).then((res) => {  // this return value does not goes to the first argument of 'then'. this just continues the parents promise
-          console.log('submit success with res', res)
-          return res
-        })
+        // console.log('submit is scoped by', this, e) // this is Form
+        if (result.indexOf(false) !== -1) {
+          // asyncValidation에 실패하여 서버에 요청을 보내지 않습니다.
+          console.log('submit failure by async validation failure', e.message)
+          this.props.control.setState((prev) => {
+            let failureCount = prev.failureCount || 0
+            return { submitting: false, failureCount: ++failureCount }
+          })
+        } else {
+          // 서버에 요청을 보냅니다.
+          return this.props.onSubmit(e).then(this.props.onSuccess || this.handleAfterSubmitCompletion, this.props.onFailure || this.handleAfterSubmitCompletion)
+        }
       }, (e) => {
-        console.log('submit failure by async validation', JSON.parse(e.message))
+        console.log('submit failure by async validation failure', e.message)
       })
     } else {
-      // async validation 이 없는 경우
+      // async validation 이 없는 경우, 그냥 요청 보내기
       console.log('submit start with no async validation')
-      return this.props.onSubmit(e).then(() => { console.log('submit success') })
+      return this.props.onSubmit(e).then(this.props.onSuccess || this.handleAfterSubmitCompletion, this.props.onFailure || this.handleAfterSubmitCompletion)
     }
-
-    // console.log('xxxxxxx promise', promise)
-    // if (promise instanceof Promise) {
-    //   promise.then((res) => {
-    //     console.log('yyyyyyy res', res)
-    //     this.handleAfterSubmitCompletion(res)
-    //   })
-    // } else {
-    //   throw new Error('Form onSubmit should return a promise')
-    // }
   }
 
   // containment로 정의된 자식에게 주입할 dependency와 value
@@ -615,9 +742,7 @@ export default class Form extends Component {
   getDependency(name, component) {
     let formControl = this.props.formControls ? this.props.formControls[name] : undefined
     let value = ('value' in component.props) ? component.props.value || '' : formControl ? formControl.value || '' : ''
-    // console.log('xxxxxx', value)
     if (component.props.type === 'reset') {
-      // console.log('zzzzzz',props)
       return {
         onClick: () => {
           console.log('Form CLICK reset')
