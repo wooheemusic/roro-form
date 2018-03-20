@@ -144,6 +144,6 @@ validator : String || { name : String, regex : RegExp || api : function, async :
 // issue 9 : PureComponent와 immutability, nested default, Object.assign 재고
 // issue 9 : componentDidCatch 사용성 테스트, 좋은 인터페이스인가
 // issue 9 : dev logging, dev minifying 구현 (__DEV__)
-// issue 1 : constructor에서 meta를 얼마나 더 수집해야하는가. 예) name을 수집하면 injectFunctionsToSuper등에서 활용할 수 있다
+// issue 1 : chrome dev tool perfomance test
 // issue 1 : 동적인 필드 추가 등, 타 api들의 재미있는 UI를 구현해야한다.
 ```
