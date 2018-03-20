@@ -4,7 +4,7 @@
   불러오기 `import Form, { Input } from '...' 
 
 ## 기본 예제
-```
+```jsx
 <Form {...this.state} control={this} onSubmit={this.handleSubmit} >
   <Input name="username" />
   <input name="password" type="password" />
@@ -14,7 +14,7 @@
 ```
 
 ## 응용 예제
-```
+```jsx
 <Form {...this.state} control={this}
   className="form-signin"
   initState={initState}
