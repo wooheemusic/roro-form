@@ -99,7 +99,7 @@ validator : String || { name : String, regex : RegExp || api : function, async :
   
 * isAsyncValidating(name : String [Optional]) : boolean
   * 진행중인 async validation이 있다면 true를 출력, name을 입력하면 해당 필드에 관해서만 출력.
-  * idle을 체크하지 않음
+  * idle을 체크하지 않음
   
 * getAsyncRejection(name : String) : Array
   * 이미 async 검증을 했다면, 에러 메세지를 array로 출력
