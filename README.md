@@ -1,8 +1,19 @@
 ##  기본 설명
   react containment방식으로 JXS를 구성할 수 있다.
   자식 노드로서, 모든 element 및  component를 사용할 수 있고, 만약 그것이 built-in input이나 이 Form의 Input이라면 이 Form에 종속성을 가진다.
-  
-## 사용 예
+  불러오기 `import Form, { Input } from '...' 
+
+## 기본 예제
+```
+<Form {...this.state} control={this} onSubmit={this.handleSubmit} >
+  <Input name="username" />
+  <input name="password" type="password" />
+  <button type="submit">Sign in</button>
+  <button type="reset">reset</button>
+</Form>
+```
+
+## 응용 예제
 ```
 <Form {...this.state} control={this}
   className="form-signin"
@@ -53,3 +64,10 @@
   <Button color="primary" type="reset" block disabled={submitting}>clear</Button>
 </Form>
 ```
+
+##제약사항
+Form attributes에 `{...this.state} control={this}`를 선언하는 것은 필수
+react expression에 this.ready를 사용 후, 주입된 메소드들을 활용할 수 있다. 예) `this.ready && this.isAsyncValidating()`
+
+## 검증 인터페이스
+
