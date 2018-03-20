@@ -98,15 +98,15 @@ validator : String || { name : String, regex : RegExp || api : function, async :
   * name을 가진 필드를 검증, value를 입력하면 react state에서 제어하는 value를 무시하고 주어진 value로 검증
   
 * isAsyncValidating(name : String [Optional]) : boolean
-  * 진행중인 async validation이 있다면 true를 출력, name을 입력하면 해당 필드에 관해서만 출력.
+  * 진행중인 async validation이 있다면 true를 출력, name을 입력하면 해당 필드에 관해서만 출력.
   * idle을 체크하지 않음
   
 * getAsyncRejection(name : String) : Array
-  * 이미 async 검증을 했다면, 에러 메세지를 array로 출력
+  * 이미 async 검증을 했다면, 에러 메세지를 array로 출력
   * idle을 체크하지 않음
   
 * getAsyncStatusArray(name : String) : Array 
-  * 현재 async 검증의 상태를 리턴
+  * 현재 async 검증의 상태를 리턴
   * `['resolved', 'processing', 'rejected', 'idle', ... ]`
   
 * isAsyncValid(lowerBound = 'processing' : String, name : String [Optional]) : boolean
