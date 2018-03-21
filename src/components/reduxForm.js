@@ -18,7 +18,7 @@ const renderField = ({
 }, ...rest) => {
   console.log('meta', meta)
   console.log('input', input)
-  console.log('xxxxxxx', meta.asyncValidating)
+  console.log('meta.asyncValidating', meta.asyncValidating)
   return (
     <div className="input-container">
       <label>{label + (meta.asyncValidating ? ' : validating' : '')}</label>
