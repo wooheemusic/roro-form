@@ -145,7 +145,7 @@ validator : String || { name : String, regex : RegExp || api : function, async :
 // issue 1 : old browser, xss
 
 // config & hook
-// issue 1 : customizing 혹은 logging을 위해 다양한 hook을 제공해야한다. promise의 대부분 stack에서 logging할 수 있도록 할 것이다.
+// issue 3 : customizing 혹은 logging을 위해 다양한 hook을 제공해야한다. promise의 대부분 stack에서 logging할 수 있도록 할 것이다.
 // issue 3 : suppressBuiltInValidation 구현, Input은 default true, input은 default false 
 
 // extra
@@ -153,6 +153,7 @@ validator : String || { name : String, regex : RegExp || api : function, async :
 // issue 9 : PureComponent와 immutability, nested default, Object.assign 재고
 // issue 9 : componentDidCatch 사용성 테스트, 좋은 인터페이스인가
 // issue 9 : dev logging, dev minifying 구현 (__DEV__)
-// issue 1 : chrome dev tool perfomance test
-// issue 1 : 동적인 필드 추가 등, 타 api들의 재미있는 UI를 구현해야한다.
+// issue 9 : chrome dev tool perfomance test
+// issue 9 : 동적인 필드 추가 등, 타 api들의 재미있는 UI를 구현해야한다.
+// issue 9 : versioning을 알아보고, npm 배포 방법을 알아본다
 ```
