@@ -53,7 +53,7 @@ export default class LoginForm extends Component {
 
   handleSubmit(e) {
     console.log('LoginForm handleSubmit', e)
-    return asyncApi(4000, true).then(()=>{alert('success')})
+    return asyncApi(4000, true).then(() => { alert('success') })
   }
 
   setAllTouched() {
@@ -66,16 +66,19 @@ export default class LoginForm extends Component {
   render() {
     console.log('LoginForm state', this.state) // check this.state and apply properties to JSX like 'disable={this.state.submitting}'
     // if (this.state.formControls && this.state.formControls.username ) {
-      // console.log(this.ready && this.state.formControls.username.value)
+    // console.log(this.ready && this.state.formControls.username.value)
     // }else {
     //   console.log('formContols are ', this.formControls)
     // }
 
-    
+    if (this.ready) {
+      // console.log('xxxxxxxx',this.getAsyncErrorMessages('password'))
+    }
+
     // console.log(this.ready && this.state.formControls.password.value.length)
     const { submitting } = this.state
 
-    const initState = { formControls: { username: { value: 'woohee@s' }, password: { value: '1134' } } }
+    const initState = { formControls: { username: { value: 'woohee@s' }, password: { value: '124' }, nickname: { value: '222' } } }
 
     return (
 
@@ -98,7 +101,7 @@ export default class LoginForm extends Component {
         <div className="input-container">
           <Input name="username"
             required
-            validators={['required', 'wwww', 'email']}
+            validators={['wwww', 'email', 'required']}
             assertTrue={{ name: 'emailExist', api: () => { return asyncApi(3000, true) }, async: true, message: 'not exist' }} // api should return a boolean
             // assertFalse={{ name: 'asserFALSE', regex: /^.{12,14}$/ }}
             className="form-control"
@@ -107,7 +110,7 @@ export default class LoginForm extends Component {
           <div>&nbsp;{this.ready && (
             (this.isAsyncValidating('username') && 'asyncValidating')
             || (this.isTouched('username') && this.syncValidate('username'))
-            || this.getAsyncRejection('username')[0]
+            || (this.hasAsyncRejection('username') && this.getAsyncErrorMessages('username')[0].message)
           )
           }</div>
         </div>
@@ -118,24 +121,40 @@ export default class LoginForm extends Component {
               name="password"
               type="password"
               className="form-control"
-              // assertTrue={{ name: 'passwordCheck', api: () => { return asyncApi(4000, false) }, async: true, message: 'not valid' }}
+              // assertTrue={{ name: 'passwordCheck', refex : /^.{1,1000}$/, message: 'not valid' }}
               required
-              validators={[{ name: '5~10', regex: /^.{5,15}$/ }, { name: 'passwordCheck', api: () => { return asyncApi(3000, true) }, async: true, message: 'not valid' }]}
-              disabled={submitting || this.ready && this.isAsyncValidating('password')} 
-              />
+              validators={['assertTrue', { name: '5~10', regex: /^.{5,10}$/ }, { name: 'passwordCheck', api: (v) => { return asyncApi(3000, v.length > 7 ? true : false) }, async: true, message: 'async failure : assert length > 7' }]}
+              disabled={submitting || this.ready && this.isAsyncValidating('password')}
+            />
             <div>&nbsp;{this.ready && (
               (this.isAsyncValidating('password') && 'asyncValidating')
               || (this.isTouched('password') && this.syncValidate('password'))
-              || this.getAsyncRejection('password')[0]
+              || (this.hasAsyncRejection('password') && this.getAsyncErrorMessages('password')[0].message)
             )
             }</div>
           </div>
         </div>
+
+        <div className="input-container">
+          <div>
+            <Input
+              // match="username"
+              name="nickname"
+              className="form-control"
+              // assertTrue={{ name: 'passwordCheck', refex : /^.{1,1000}$/, message: 'not valid' }}
+              required
+              validators={['assertTrue', { name: '2~10', regex: /^.{2,10}$/ }]}
+              disabled={submitting || this.ready && this.isAsyncValidating('nickname')}
+            />
+            <div>&nbsp;{this.ready && this.isTouched('nickname') && this.syncValidate('nickname')}</div>
+          </div>
+        </div>
+
         {/* <button type="submit" > ddddd </button> */}
         <Button color="primary" type="submit" block disabled={submitting}>{this.ready && this.isAsyncValidating() ? 'validating' : submitting ? 'submitting' : 'Sign in'}</Button>
         <Button color="primary" type="reset" block disabled={submitting}>clear</Button>
         {/* {this.ready && this.isSyncValid() && this.isAsyncValid() ? 'valid to submit' : 'invaild to submit'} */}
-        <br/><br/><br/><br/><br/><br/>
+        <br /><br /><br /><br /><br /><br />
       </Form>
     )
   }

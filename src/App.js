@@ -44,9 +44,9 @@ class App extends Component {
         </Kitchen > */}
         {/* <ReactForm /> */}
         <LoginForm name="Roro Form"/>
-        <Provider store={store}>
+        {/* <Provider store={store}>
           <ReduxForm onSubmit={handleSubmit}/>
-        </Provider>
+        </Provider> */}
       </div>
     );
   }
