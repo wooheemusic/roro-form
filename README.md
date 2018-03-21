@@ -71,7 +71,8 @@
 
 ## 특이사항
 * Form attributes에 `{...this.state} control={this}`를 선언하는 것은 필수
-* react expression에 this.ready와 함께 다양한 메소드들을 활용할 수 있다. 예) `this.ready && this.isAsyncValidating()`
+* react expression에 this.ready와 함께 다양한 메소드들을 활용할 수 있다. 
+  * 예) `this.ready && this.isAsyncValidating()`
 
 ## 검증 인터페이스
 * 기본적인 검증 객체 
