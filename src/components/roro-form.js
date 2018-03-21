@@ -791,9 +791,9 @@ export default class Form extends Component {
 
     let idleFields = this.props.control.getIdleFields()
     for (let i in idleFields) {
-      allPromises.concat(this.props.control.asyncValidate(idleFields[i]))
+      allPromises = allPromises.concat(this.props.control.asyncValidate(idleFields[i]))
     }
-    allPromises.concat(this.props.control.getProcessingPromises())
+    allPromises = allPromises.concat(this.props.control.getProcessingPromises())
 
     if (allPromises.length > 0) {
       return Promise.all(allPromises).then((result) => {
