@@ -5,7 +5,6 @@ export class Input extends Component {
 
   constructor(props) {
     super(props)
-    // console.log('Input const', this.props)
 
     // this.should embrace the Form's managed props
     this.disallowedProps = [
@@ -24,7 +23,6 @@ export class Input extends Component {
   }
 
   render() {
-    // console.log('Input render', this.props)
     const filteredProps = this.getFilteredProps(this.props)
     return (
       <input {...filteredProps} />
@@ -32,41 +30,6 @@ export class Input extends Component {
   }
 
 }
-
-// From attributes
-// state={this.state} control={this} is required to update this.state 
-// initState={{formControls : { user : {value : 'John Doe' , touched : false }}}} is optional... redux를 사용하여 초기화 할 수 있을 것입니다.
-
-// common
-// issue 0 : react 공식문서 학습이 70%정도 밖에 되지 않으므로, 모두 학습 후 개선 또는 다시 작성한다.
-// issue 0 : 배포와 라이선스에 관해 상의해야한다.
-
-// eager
-// issue 1 : unmount상태에서 async process에서의 exception에 대비 해야한다.
-
-// lazy
-// issue 1 : uncontrolled component 디자인 구상, ref? no? ex) type="file" 
-// issue 1 : built-in input에 관해서는 constructValidators에서 built-in attribute 이외의 것들만 build하도록 변경하여야한다.
-// issue 1 : html5의 모든 스펙을 구현해야한다. (radio, checkbox, range, textarea, select, contenteditable, submit action async ...)
-// issue 1 : querystring interface 확인
-// issue 1 : ref의 가용성에 관해 알아보아야 한다. 
-// issue 1 : this.ready등을 제거하기 위해 'export default ready(component)' 방식으로 변경할지 생각 중
-// issue 1 : old browser, xss
-
-// config & hook
-// issue 1 : customizing 혹은 logging을 위해 다양한 hook을 제공해야한다. promise의 대부분 stack에서 logging할 수 있도록 할 것이다.
-// issue 3 : suppressBuiltInValidation 구현, Input은 default true, input은 default false 
-
-// extra
-// issue 9 : loop performance 개선
-// issue 9 : PureComponent와 immutability, nested default, Object.assign 재고
-// issue 9 : componentDidCatch 사용성 테스트, 좋은 인터페이스인가
-// issue 9 : dev logging, dev minifying 구현 (__DEV__)
-// issue 1 : chrome dev tool perfomance test
-// issue 1 : 동적인 필드 추가 등, 타 api들의 재미있는 UI를 구현해야한다.
-
-
-// https://reactjs.org/docs/codebase-overview.html#development-and-production
 
 export default class Form extends Component {
 
@@ -81,11 +44,11 @@ export default class Form extends Component {
       formControls: undefined, // {}
 
       // 하지만 이 값을 절대 읽지 않는 것이 아이러니... 구조조정 하자
-      config: { // hook??
+      config: { // hook alternative??
         asyncValidateOnChange: false, // 아직 구현안됨, 해야하나...
-        asyncValidateOnBlur: true, 
-        asyncValidateOnInit: true, 
-        touchedForAsyncField: true, 
+        asyncValidateOnBlur: true,
+        asyncValidateOnInit: true,
+        touchedForAsyncField: true,
       },
     }
 
@@ -108,7 +71,10 @@ export default class Form extends Component {
       if (name)
         meta.push(name)
     }
-    this.props.control.setState({ meta }) // constructor에서 상위 컴포넌트의 setState는 componentDidMount에서 한 것과 같다.
+    // console.log('super.setState in constructor')
+    this.props.control.setState({ meta })
+    // constructor에서 이 컴포넌트에 setState할 수 없다.
+    // constructor에서 상위 컴포넌트의 setState는 가능하며, 당연히 render의 props에서는 아직 invisible, 이 컴포넌트의 componentDidMount의 setState와 같은 boundary를 가진다.
 
     control.syncValidators = {}
     control.asyncValidators = {}
@@ -131,22 +97,23 @@ export default class Form extends Component {
     this.ready = true
 
     this.getValue = function (name) {
-      return (!this.state.formControls[name]) ? '' : this.state.formControls[name].value || ''
+      // return (!this.state.formControls[name]) ? '' : this.state.formControls[name].value || ''
+      return this.state.formControls[name].value // || ''
     }
 
     this.isTouched = function (name) {
-      if (!this.state.formControls[name]) {
-        return false // null
-      }
-      return this.state.formControls[name].touched // === true ? true : false
+      // if (!this.state.formControls[name]) {
+      //   return false // null
+      // }
+      return this.state.formControls[name].touched // || false
     }
 
     // 해당 name을 가진 필드에 관해 sync validation을 수행
     // 값이 없어도 null을 리턴함을 주의
     this.syncValidate = function (name, value) {
-      if (!value && !this.state.formControls[name]) {
-        return null
-      }
+      // if (!value && !this.state.formControls[name]) {
+      //   return null
+      // }
       let ownValidators = this.syncValidators[name]
       if (ownValidators instanceof Array) {
         for (let i in ownValidators) {
@@ -163,16 +130,17 @@ export default class Form extends Component {
 
     this.syncValidateFull = function (name, value) {
       let validationResult = []
-      if (!value && !this.state.formControls[name]) {
-        return validationResult
-      }
+      // if (!value && !this.state.formControls[name]) {
+      //   return validationResult
+      // }
+      value = value || this.getValue(name)
       let ownValidators = this.syncValidators[name]
       if (ownValidators instanceof Array) {
         for (let i in ownValidators) {
           let ownValidator = ownValidators[i]
-          if (ownValidator.regex && ownValidator.regex.test(value || this.getValue(name)) === (ownValidator.assertFalse || false)) {
+          if (ownValidator.regex && ownValidator.regex.test(value) === (ownValidator.assertFalse || false)) {
             validationResult.push(ownValidator.message || ownValidator.name)
-          } else if (ownValidator.api && ownValidator.api(value || this.getValue(name)) === false) {
+          } else if (ownValidator.api && ownValidator.api(value) === false) {
             validationResult.push(ownValidator.message || ownValidator.name)
           }
         }
@@ -261,39 +229,61 @@ export default class Form extends Component {
     }
 
     // check only 'processing's (this does not check 'null' status)
-    this.isAsyncValidating = function (name) {
-      if (name) {
-        // 특정필드에 관해서만
-        let asyncValidations = this.state.asyncValidations
-        let asyncValidators = this.asyncValidators[name]
-        for (let i in asyncValidators) {
-          // let asyncValidator = asyncValidators[i]
-          let asyncName = asyncValidators[i].name
-          // 아직 검증 안했다면 continue
-          if (!asyncValidations || !(asyncName in asyncValidations)) {
-            continue
-          }
-          // 상태가 'processing'이라면 true
-          let asyncValidation = asyncValidations[asyncName]
-          if (asyncValidation.status === 'processing') {
-            return true
-          }
+    // this.isAsyncValidating = function (name) {
+    //   if (name) {
+    //     // 특정필드에 관해서만, 적어도 하나라도 존재하면
+    //     let asyncValidations = this.state.asyncValidations
+    //     if (!asyncValidations) {
+    //       return false
+    //     }
+    //     let asyncValidators = this.asyncValidators[name]
+    //     for (let i in asyncValidators) {
+    //       // let asyncValidator = asyncValidators[i]
+    //       let asyncName = asyncValidators[i].name
+    //       // 아직 검증 안했다면 continue
+    //       if (!(asyncName in asyncValidations)) {
+    //         continue
+    //       }
+    //       // 상태가 'processing'이라면 true
+    //       let asyncValidation = asyncValidations[asyncName]
+    //       if (asyncValidation.status === 'processing') {
+    //         return true
+    //       }
+    //     }
+    //     return false
+    //   } else {
+    //     // 모든 필드에 관해서, 적어도 하나라도 존재하면
+    //     let asyncValidations = this.state.asyncValidations
+    //     for (let i in asyncValidations) {
+    //       if (asyncValidations[i].status === 'processing') {
+    //         return true
+    //       }
+    //     }
+    //     return false
+    //   }
+    // }
+
+    this.asyncStatusInternal = function (task, name) {
+      let asyncValidations = this.state.asyncValidations
+      for (let asyncName in asyncValidations) {
+        let asyncValidation = asyncValidations[asyncName]
+        if ((!name || asyncValidation.owner === name) && asyncValidation.status === task) {
+          return true
         }
-        return false
-      } else {
-        // 모든 필드에 관해서
-        let asyncValidations = this.state.asyncValidations
-        for (let i in asyncValidations) {
-          if (asyncValidations[i].status === 'processing') {
-            return true
-          }
-        }
-        return false
       }
+      return false
     }
 
-    // check only 'rejected's and returns their error messages (this does not check 'null' status)
-    this.getAsyncErrorMessages = function (name) {
+    this.isAsyncValidating = function (name) {
+      return this.asyncStatusInternal('processing', name)
+    }
+
+    this.isAsyncRejected = function (name) {
+      return this.asyncStatusInternal('rejected', name)
+    }
+
+    // asyncStatusInternal를 사용하고 싶은데....
+    this.getAsyncError = function (name) {
       let result = []
       let asyncValidations = this.state.asyncValidations
       for (let asyncName in asyncValidations) {
@@ -303,20 +293,6 @@ export default class Form extends Component {
         }
       }
       return result
-    }
-
-    this.hasAsyncRejection = function (name) {
-      let asyncValidations = this.state.asyncValidations
-      for (let asyncName in asyncValidations) {
-        let asyncValidation = asyncValidations[asyncName]
-        if (asyncValidation.status === 'rejected') {
-          if (name && asyncValidation.owner !== name) {
-            continue
-          }
-          return true
-        }
-      }
-      return false
     }
 
     // 'null' for not-validated 
@@ -349,21 +325,46 @@ export default class Form extends Component {
     //   return result
     // }
 
-    this.getIdleFields = function () {
+    this.isAsyncIdleField = function (name) {
+      if (!(name in this.asyncValidators)) {
+        return false
+      } 
+      let asyncValidations = this.state.asyncValidations
+      if (!asyncValidations) {
+        return false
+      }
+      if (!(this.asyncValidators[name][0].name in asyncValidations)) {
+        return false
+      }
+      return true
+    }
+
+    this.getAsyncIdleFields = function () {
       let result = []
       let asyncValidations = this.state.asyncValidations
       for (let name in this.asyncValidators) {
-        let asyncValidators = this.asyncValidators[name]
-        for (let i in asyncValidators) {
-          let asyncName = asyncValidators[i].name
-          if (!asyncValidations || !(asyncName in asyncValidations)) {
-            result.push(name)
-            break
-          }
+        if (!asyncValidations) {
+          result.push(name)
+          continue
+        }
+        if (!(this.asyncValidators[name][0].name in asyncValidations)) {
+          result.push(name)
         }
       }
+      // atLeastOne: // 
+      // for (let name in this.asyncValidators) {
+      //   let asyncValidators = this.asyncValidators[name]
+      //   for (let i in asyncValidators) {
+      //     let asyncName = asyncValidators[i].name
+      //     if (!asyncValidations || !(asyncName in asyncValidations)) {
+      //       result.push(name)
+      //       break atLeastOne
+      //     }
+      //   }
+      // }
       return result
     }
+
 
     // private
     // level 'processing' or 'resolved' 
@@ -385,7 +386,7 @@ export default class Form extends Component {
           return false
         }
         // state의 value와 검증한 value가 다르다면 false
-        if (!this.state.formControls || !this.state.formControls[name] || (asyncValidation.value !== this.state.formControls[name].value)) {
+        if (asyncValidation.value !== this.getValue(name)) {
           return false
         }
       }
@@ -597,8 +598,9 @@ export default class Form extends Component {
           if (input.props.match) {
             let targetName = input.props.match
             let matchFunction = (function () {
-              if (this.state.formControls[name] && this.state.formControls[targetName] && this.state.formControls[name].value === this.state.formControls[targetName].value) {
-                return true
+              // if (this.state.formControls[name] && this.state.formControls[targetName] && this.state.formControls[name].value === this.state.formControls[targetName].value) {
+              if (this.state.formControls[name].value === this.state.formControls[targetName].value) {
+              return true
               } else {
                 return false
               }
@@ -643,8 +645,12 @@ export default class Form extends Component {
       }
     }
 
-    syncValidators[name] = internalSyncValidators
-    asyncValidators[name] = internalAsyncValidators
+    if (internalSyncValidators.length !== 0) {
+      syncValidators[name] = internalSyncValidators
+    }
+    if (internalAsyncValidators.length !== 0) {
+      asyncValidators[name] = internalAsyncValidators
+    }
 
     return [syncValidators, asyncValidators]
   }
@@ -664,7 +670,7 @@ export default class Form extends Component {
     }
 
     this.props.control.setState((prev) => {
-      // console.log(prev.meta)
+      // console.log('prev.meta', prev.meta)
       for (let p in prev) {
         if (p === 'meta') continue
         prev[p] = undefined
@@ -698,6 +704,7 @@ export default class Form extends Component {
   }
 
   componentDidMount() {
+    // console.log('componentDidMount')
     this.initialize()
   }
 
@@ -776,10 +783,10 @@ export default class Form extends Component {
       return
     }
 
-    // 검증하지 않은 필드까지 확인할때 isAsyncValid, 검증실패한 필드만 확인할 때 hasAsyncRejection
-    // blur에 async 검증하는지 안하는지 몰라야하기 때문에 hasAsyncRejection를 사용
+    // 검증하지 않은 필드까지 확인할때 isAsyncValid, 검증실패한 필드만 확인할 때 isAsyncRejected
+    // blur에 async 검증하는지 안하는지 몰라야하기 때문에 isAsyncRejected를 사용
 
-    if (this.props.control.hasAsyncRejection()) {
+    if (this.props.control.isAsyncRejected()) {
       console.log('submit denied by asyncValidation, rejected')
       return
     }
@@ -789,7 +796,7 @@ export default class Form extends Component {
 
     let allPromises = []
 
-    let idleFields = this.props.control.getIdleFields()
+    let idleFields = this.props.control.getAsyncIdleFields()
     for (let i in idleFields) {
       allPromises = allPromises.concat(this.props.control.asyncValidate(idleFields[i]))
     }
@@ -879,6 +886,7 @@ export default class Form extends Component {
 
   render() {
     // console.log('Form render props', this.props)
+    // console.log('Form render props', this.props.control.state.meta)
     const { children, name, className, onSubmit } = this.props
     const dependentChildren = this.getDependentChildren(children)
     // console.log('dependentChildren', dependentChildren)

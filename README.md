@@ -101,14 +101,21 @@
 validator : String || { name : String, regex : RegExp || api : function, async : boolean [Optional], message : String [Optional] }
 ```
   * name은 중복될 수 없고, html5 attribute 이름들과 같을 수 없습니다.
+  * api는 Boolean을 리턴하는 promise를 리턴해야합니다. 
 * attributes에 선언 
 ```jsx
 <input validators={[ validator1, validator2, ...]} ... />
 ```
-* 검증의 순서는 validators의 index와 동일하고, async일 경우는 순서에서 제외됨
+* 검증의 순서는 validators의 index와 동일하고, async일 경우는 순서에서 제외됩니다.
 * html5 built-in attribute(required, pattern, ...)등을 해석하여 validator를 만들어서 가장 끝(required는 앞) 혹은 같은 이름의 String으로 선언된 순서에 삽입됩니다.
 
 ## 메소드 리스트 (Form으로 구성하는 JSX에 사용)
+* 'getValue(name : String) : String'
+  * state로부터 value를 받아옵니다
+
+* 'isTouched(name : String) : Boolean'
+  * state로부터 touched를 확인합니다.
+
 * 'isSyncValid : boolean'
   * 모든 필드가 synchromous valid한지 확인
   
@@ -122,30 +129,37 @@ validator : String || { name : String, regex : RegExp || api : function, async :
   * name을 가진 필드를 검증, value를 입력하면 react state에서 제어하는 value를 무시하고 주어진 value로 검증
   
 * 'isAsyncValidating(name : String [Optional]) : Boolean'
-  * 진행중인 async validation이 있다면 true를 출력, name을 입력하면 해당 필드에 관해서만 출력.
-  * idle을 체크하지 않음
+  * (해당 필드에 관해) processing이 있다면 true
+
+* 'isAsyncRejected(name : String [Optional]) : Boolean'
+  * (해당 필드에 관해) rejected가 있다면 true
   
-* 'getAsyncErrorMessages(name : String) : Array<{ name : String, message: String }>'
-  * 이미 async 검증을 했다면, 에러 메세지를 array로 출력
-  * idle을 체크하지 않음
+* 'getAsyncError(name : String) : Array<{ name : String, message: String }>'
+  * rejected된 검증에 관하여 결과를 리턴
+
+* 'isAsyncIdleField(name : String) : Boolean'
+  * async 검증을 수행하였는지 확인합니다.
+
+* 'getAsyncIdleFields : Array<String>'
+  * async 검증하지 않은 field 이름의 배열을 리턴합니다.
   
 * 'isAsyncValid(name : String [Optional], lowerBound = 'processing' : String [Optional]) : boolean'
-  * lowerBound가 processing이면, processing이 있어도 true, lowerBound가 resolved이면 모든 항목이 resolved이어야 합니다.
+  * lowerBound가 processing이면, processing이 있어도 true, lowerBound가 resolved이면 모든 항목이 resolved이어야 합니다. 
   * name은 특정 필드를 지칭, 없으면 모든 필드
+  * resolved여도 현재 state의 value와 다르다면 false
   
 * 'getProcessingPromises : Array<Promise>'
   * state에서의 상태가 processing인 promise를 받아옵니다.
-  * promise가 실제로 resolved여도 state가 processing이라면 리턴 값에 포함됩니다. react의 제어 플레임에 동기화되어 있음.
+  * promise가 실제로 resolved여도 state가 processing이라면 리턴 값에 포함됩니다. react의 제어 플레임에 동기화되어 있습니다.
 
-* 'getIdleFields : Array<String>'
-  * async 검증하지 않은 field 이름의 배열을 리턴합니다.
-
-* 'hasAsyncRejection(name : String [Optional]) : Boolean'
-  * 해당 필드에 관해 rejected가 있다면 true
-
-## Tips
-* hasAsyncRejection는 rejection만을 체크하고, isAsyncValid는 idle까지 체크합니다.
-* ...
+## Submit Interface
+* Form attributes는 submit에 관련하여, onSubmit, onSuccess, onFailure를 구현할 수 있습니다.
+* OnSubmit은 프로미스를 리턴해야합니다.
+* 내부에서 프로미스를 다루는 코드는 아래와 같습니다. 
+```
+this.props.onSubmit(e).then(this.props.onSuccess || this.handleAfterSubmitCompletion, this.props.onFailure || this.handleAfterSubmitCompletion)
+```
+* handleAfterSubmitCompletion은 submitting을 false로 만드는 함수입니다.
 
 ## issues
 ```

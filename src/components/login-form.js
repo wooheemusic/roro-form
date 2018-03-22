@@ -72,7 +72,7 @@ export default class LoginForm extends Component {
     // }
 
     if (this.ready) {
-      // console.log('xxxxxxxx',this.getAsyncErrorMessages('password'))
+      // console.log('xxxxxxxx',this.getAsyncError('password'))
     }
 
     // console.log(this.ready && this.state.formControls.password.value.length)
@@ -110,7 +110,7 @@ export default class LoginForm extends Component {
           <div>&nbsp;{this.ready && (
             (this.isAsyncValidating('username') && 'asyncValidating')
             || (this.isTouched('username') && this.syncValidate('username'))
-            || (this.hasAsyncRejection('username') && this.getAsyncErrorMessages('username')[0].message)
+            || (this.isAsyncRejected('username') && this.getAsyncError('username')[0].message)
           )
           }</div>
         </div>
@@ -129,7 +129,7 @@ export default class LoginForm extends Component {
             <div>&nbsp;{this.ready && (
               (this.isAsyncValidating('password') && 'asyncValidating')
               || (this.isTouched('password') && this.syncValidate('password'))
-              || (this.hasAsyncRejection('password') && this.getAsyncErrorMessages('password')[0].message)
+              || (this.isAsyncRejected('password') && this.getAsyncError('password')[0].message)
             )
             }</div>
           </div>
@@ -146,7 +146,30 @@ export default class LoginForm extends Component {
               validators={['assertTrue', { name: '2~10', regex: /^.{2,10}$/ }]}
               disabled={submitting || this.ready && this.isAsyncValidating('nickname')}
             />
-            <div>&nbsp;{this.ready && this.isTouched('nickname') && this.syncValidate('nickname')}</div>
+             <div>&nbsp;{this.ready && (
+              (this.isAsyncValidating('nickname') && 'asyncValidating')
+              || (this.isTouched('nickname') && this.syncValidate('nickname'))
+              || (this.isAsyncRejected('nickname') && this.getAsyncError('nickname')[0].message)
+            )
+            }</div>
+          </div>
+        </div>
+
+        <div className="input-container">
+          <div>
+            <Input
+              match="nickname"
+              name="controlgroup"
+              className="form-control"
+              // assertTrue={{ name: 'passwordCheck', refex : /^.{1,1000}$/, message: 'not valid' }}
+              disabled={submitting || this.ready && this.isAsyncValidating('controlgroup')}
+            />
+             <div>&nbsp;{this.ready && (
+              (this.isAsyncValidating('controlgroup') && 'asyncValidating')
+              || (this.isTouched('controlgroup') && this.syncValidate('controlgroup'))
+              || (this.isAsyncRejected('controlgroup') && this.getAsyncError('controlgroup')[0].message)
+            )
+            }</div>
           </div>
         </div>
 
